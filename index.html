@@ -3,204 +3,456 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>TickTickClock — Real-Time Synchronization Platform</title>
+        <title>TickTickClock — Temporal Intelligence</title>
+        <meta
+            name="description"
+            content="Time-series continual learning engine. The temporal intelligence layer of the [&] Ampersand Box Design ecosystem."
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
-            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;700;900&family=Courier+Prime:wght@400;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap"
             rel="stylesheet"
         />
         <style>
+            :root {
+                --white: #fafaf8;
+                --black: #0a0a0a;
+                --red: #e8192c;
+                --red-dim: rgba(232, 25, 44, 0.12);
+                --red-glow: rgba(232, 25, 44, 0.25);
+                --gray: #666;
+                --gray-light: #aaa;
+                --gray-lighter: #e8e8e6;
+                --gray-bg: #f2f2f0;
+                --border: rgba(0, 0, 0, 0.08);
+            }
+
             * {
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
             }
-
-            body {
-                font-family: "Courier Prime", monospace;
-                background: #ffffff;
-                color: #000000;
-                overflow: hidden;
-                height: 100vh;
+            html {
+                scroll-behavior: smooth;
             }
 
-            /* Canvas for 3D visualization */
-            #viz-canvas {
+            body {
+                font-family: "Space Mono", monospace;
+                background: var(--white);
+                color: var(--black);
+                overflow-x: hidden;
+            }
+
+            /* Subtle paper texture */
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.018'/%3E%3C/svg%3E");
+                pointer-events: none;
+                z-index: 9999;
+            }
+
+            canvas#graph {
+                position: fixed;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 0;
+            }
+
+            .page {
+                position: relative;
+                z-index: 1;
+                pointer-events: none;
+            }
+            .page a,
+            .page button {
+                pointer-events: all;
+            }
+
+            /* ─── Loader ─── */
+            .loader {
+                position: fixed;
+                inset: 0;
+                background: var(--white);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 5000;
+                animation: loaderOut 0.8s ease 2s forwards;
+            }
+
+            @keyframes loaderOut {
+                to {
+                    opacity: 0;
+                    pointer-events: none;
+                }
+            }
+
+            .loader-inner {
+                text-align: center;
+            }
+
+            .loader-text {
+                font-family: "Syne", sans-serif;
+                font-size: 1.2rem;
+                font-weight: 800;
+                letter-spacing: 0.3em;
+                color: var(--black);
+                animation: loaderPulse 0.8s ease-in-out infinite;
+            }
+
+            .loader-bar {
+                width: 120px;
+                height: 2px;
+                background: var(--gray-lighter);
+                margin: 1rem auto 0;
+                border-radius: 1px;
+                overflow: hidden;
+            }
+
+            .loader-bar::after {
+                content: "";
+                display: block;
+                width: 40%;
+                height: 100%;
+                background: var(--red);
+                animation: loaderSlide 1s ease-in-out infinite;
+            }
+
+            @keyframes loaderPulse {
+                0%,
+                100% {
+                    opacity: 0.3;
+                }
+                50% {
+                    opacity: 1;
+                }
+            }
+            @keyframes loaderSlide {
+                0% {
+                    transform: translateX(-100%);
+                }
+                100% {
+                    transform: translateX(350%);
+                }
+            }
+
+            /* ─── Header ─── */
+            header {
                 position: fixed;
                 top: 0;
                 left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 1;
+                right: 0;
+                z-index: 200;
+                padding: 1.25rem 2.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: rgba(250, 250, 248, 0.75);
+                backdrop-filter: blur(24px);
+                border-bottom: 1px solid var(--border);
+                pointer-events: all;
             }
 
-            /* Content overlay */
-            .overlay {
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 0.7rem;
+                text-decoration: none;
+                color: var(--black);
+            }
+
+            .logo-mark {
+                font-family: "Syne", sans-serif;
+                font-weight: 800;
+                font-size: 1rem;
+                width: 28px;
+                height: 28px;
+                border: 2px solid var(--black);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 position: relative;
-                z-index: 10;
+                line-height: 1;
+            }
+
+            /* Animated clock hand */
+            .logo-mark::after {
+                content: "";
+                position: absolute;
+                width: 1.5px;
+                height: 7px;
+                background: var(--red);
+                top: 4px;
+                left: 50%;
+                transform: translateX(-50%);
+                transform-origin: bottom center;
+                animation: hand 6s linear infinite;
+            }
+
+            @keyframes hand {
+                to {
+                    transform: translateX(-50%) rotate(360deg);
+                }
+            }
+
+            .logo-name {
+                font-family: "Syne", sans-serif;
+                font-size: 0.92rem;
+                font-weight: 800;
+                letter-spacing: 0.03em;
+            }
+
+            .nav-r {
+                display: flex;
+                align-items: center;
+                gap: 1.75rem;
+            }
+
+            .nav-r a {
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--gray);
+                text-decoration: none;
+                transition: color 0.25s;
+            }
+            .nav-r a:hover {
+                color: var(--red);
+            }
+
+            .nav-amp {
+                padding: 0.4rem 0.85rem;
+                border: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+                transition: all 0.25s !important;
+                background: var(--white);
+            }
+            .nav-amp:hover {
+                border-color: var(--red) !important;
+                color: var(--red) !important;
+            }
+            .nav-amp .s {
+                color: var(--red);
+                font-weight: 700;
+                font-size: 0.92rem;
+            }
+
+            /* ─── Hero ─── */
+            .hero {
                 min-height: 100vh;
                 display: flex;
-                flex-direction: column;
-                justify-content: center;
                 align-items: center;
-                padding: clamp(1rem, 4vw, 2rem);
-                pointer-events: none;
+                justify-content: center;
+                position: relative;
             }
 
-            /* Minimal corner branding */
-            .corner-brand {
-                position: fixed;
-                top: 2rem;
-                left: 2rem;
-                z-index: 10;
+            .hero-c {
+                text-align: center;
+                padding: 2rem;
+                max-width: 900px;
+                width: 100%;
+            }
+
+            /* Live time — centered below title */
+            .live-time {
+                font-size: 1rem;
+                font-weight: 700;
+                color: var(--black);
+                letter-spacing: 0.15em;
+                margin-bottom: 2rem;
                 opacity: 0;
-                animation: fadeIn 1s ease 0.5s forwards;
+                animation: fadeUp 0.8s ease 2.6s forwards;
+            }
+
+            .live-time .ms {
+                color: var(--red);
+                font-size: 0.92rem;
             }
 
             @keyframes fadeIn {
-                to {
-                    opacity: 1;
-                }
-            }
-
-            .brand-mark {
-                font-family: "Montserrat", sans-serif;
-                font-size: 1.5rem;
-                font-weight: 900;
-                letter-spacing: -0.05em;
-                color: #000;
-            }
-
-            .brand-subtitle {
-                font-size: 0.65rem;
-                letter-spacing: 0.3em;
-                text-transform: uppercase;
-                color: #666;
-                margin-top: 0.3rem;
-            }
-
-            /* Main logo - massive */
-            .main-logo {
-                font-family: "Montserrat", sans-serif;
-                font-size: clamp(2.5rem, 12vw, 12rem);
-                font-weight: 900;
-                letter-spacing: -0.05em;
-                line-height: 0.9;
-                text-align: center;
-                margin-bottom: clamp(1rem, 3vw, 2rem);
-                opacity: 0;
-                animation: logoAppear 2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.8s
-                    forwards;
-            }
-
-            @keyframes logoAppear {
                 from {
                     opacity: 0;
-                    transform: scale(1.2) rotateX(90deg);
-                    filter: blur(20px);
                 }
                 to {
                     opacity: 1;
-                    transform: scale(1) rotateX(0deg);
+                }
+            }
+
+            /* MASSIVE title */
+            .hero-title {
+                font-family: "Syne", sans-serif;
+                font-weight: 800;
+                font-size: clamp(3rem, 11vw, 10rem);
+                line-height: 0.88;
+                letter-spacing: -0.05em;
+                margin-bottom: 1.2rem;
+                opacity: 0;
+                animation: titleIn 1.5s cubic-bezier(0.16, 1, 0.3, 1) 2.2s
+                    forwards;
+                overflow: hidden;
+            }
+
+            .hero-title .w {
+                display: block;
+            }
+            .hero-title .w1 {
+                color: var(--black);
+            }
+            .hero-title .w2 {
+                color: var(--red);
+            }
+            .hero-title .w3 {
+                color: var(--black);
+            }
+
+            @keyframes titleIn {
+                0% {
+                    opacity: 0;
+                    transform: scale(1.1);
+                    filter: blur(12px);
+                }
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
                     filter: blur(0);
                 }
             }
 
-            .word {
-                display: block;
-                position: relative;
-            }
-
-            .word-1 {
-                color: #000;
-            }
-            .word-2 {
-                color: #ff0000;
-            }
-            .word-3 {
-                color: #000;
-            }
-
-            /* Description */
-            .description {
-                font-size: clamp(1rem, 2.5vw, 1.5rem);
+            .hero-sub {
+                font-family: "Instrument Serif", serif;
+                font-size: clamp(1.1rem, 2.2vw, 1.65rem);
+                font-style: italic;
                 font-weight: 400;
-                text-align: center;
-                max-width: 600px;
-                margin-bottom: 3rem;
-                color: #333;
+                color: var(--gray);
+                line-height: 1.55;
+                max-width: 480px;
+                margin: 0 auto 2.5rem;
                 opacity: 0;
-                animation: fadeIn 1s ease 2s forwards;
+                animation: fadeUp 0.8s ease 2.8s forwards;
             }
 
-            .description strong {
-                font-weight: 700;
-                color: #000;
+            .hero-sub strong {
+                font-style: normal;
+                color: var(--black);
+                font-weight: 400;
             }
 
-            /* CTA */
-            .cta {
-                display: inline-block;
-                padding: 1.5rem 4rem;
-                font-family: "Courier Prime", monospace;
-                font-size: 1rem;
+            @keyframes fadeUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(18px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .hero-desc {
+                font-size: 0.88rem;
+                color: var(--gray);
+                font-weight: 400;
+                line-height: 2;
+                max-width: 440px;
+                margin: 0 auto 2.5rem;
+                opacity: 0;
+                animation: fadeUp 0.8s ease 3s forwards;
+            }
+
+            .hero-btns {
+                display: flex;
+                gap: 0.75rem;
+                justify-content: center;
+                flex-wrap: wrap;
+                opacity: 0;
+                animation: fadeUp 0.8s ease 3.2s forwards;
+            }
+
+            .btn {
+                font-family: "Space Mono", monospace;
+                font-size: 0.78rem;
                 font-weight: 700;
                 letter-spacing: 0.1em;
                 text-transform: uppercase;
-                background: #000;
-                color: #fff;
+                padding: 1rem 2.5rem;
                 text-decoration: none;
-                transition: all 0.3s ease;
-                pointer-events: all;
-                opacity: 0;
-                animation: fadeIn 1s ease 2.3s forwards;
+                border: none;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 position: relative;
                 overflow: hidden;
             }
 
-            .cta::before {
+            .btn-blk {
+                background: var(--black);
+                color: var(--white);
+            }
+            .btn-blk::before {
                 content: "";
                 position: absolute;
                 top: 50%;
                 left: 50%;
                 width: 0;
                 height: 0;
-                background: #ff0000;
+                background: var(--red);
                 border-radius: 50%;
                 transform: translate(-50%, -50%);
                 transition:
                     width 0.5s ease,
                     height 0.5s ease;
             }
-
-            .cta:hover::before {
+            .btn-blk:hover::before {
                 width: 400px;
                 height: 400px;
             }
-
-            .cta span {
+            .btn-blk span {
                 position: relative;
                 z-index: 1;
             }
-
-            .cta:hover {
-                transform: translateY(-3px);
+            .btn-blk:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
             }
 
-            /* Stats footer */
-            .stats-footer {
+            .btn-out {
+                background: transparent;
+                color: var(--gray);
+                border: 1px solid var(--gray-light);
+            }
+            .btn-out:hover {
+                border-color: var(--red);
+                color: var(--red);
+            }
+
+            /* ─── Stats bar at bottom of hero ─── */
+            .stats-bar {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
+                z-index: 100;
                 display: flex;
                 justify-content: space-between;
-                padding: 2rem;
-                border-top: 1px solid #e0e0e0;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                z-index: 10;
+                padding: 1.25rem 2.5rem;
+                border-top: 1px solid var(--border);
+                background: rgba(250, 250, 248, 0.85);
+                backdrop-filter: blur(16px);
                 opacity: 0;
-                animation: slideUp 1s ease 2.5s forwards;
+                animation: slideUp 0.8s ease 3.4s forwards;
+                pointer-events: all;
+                transition: transform 0.5s ease;
+            }
+
+            .stats-bar.hidden {
+                transform: translateY(100%);
             }
 
             @keyframes slideUp {
@@ -214,386 +466,1129 @@
                 }
             }
 
-            .stat-block {
+            .stat {
                 text-align: center;
             }
 
-            .stat-value {
-                font-family: "Montserrat", sans-serif;
-                font-size: 2.5rem;
-                font-weight: 900;
-                color: #000;
+            .stat-val {
+                font-family: "Syne", sans-serif;
+                font-size: 1.6rem;
+                font-weight: 800;
+                color: var(--black);
                 display: block;
-                margin-bottom: 0.3rem;
+                margin-bottom: 0.15rem;
             }
 
-            .stat-label {
-                font-size: 0.7rem;
-                letter-spacing: 0.2em;
+            .stat-val .u {
+                font-family: "Space Mono", monospace;
+                font-size: 0.72rem;
+                color: var(--gray);
+                font-weight: 400;
+                margin-left: 0.1rem;
+            }
+
+            .stat-lbl {
+                font-size: 0.72rem;
+                letter-spacing: 0.18em;
                 text-transform: uppercase;
-                color: #666;
+                color: var(--gray);
             }
 
-            /* Time display - top right */
-            .time-display {
-                position: fixed;
-                top: 2rem;
-                right: 2rem;
-                font-family: "Courier Prime", monospace;
-                font-size: 1.2rem;
+            /* ─── Heartbeat waveform trace — rendered on canvas ─── */
+
+            /* ─── Below fold ─── */
+            .below {
+                position: relative;
+                z-index: 2;
+                background: var(--white);
+                pointer-events: all;
+            }
+
+            .sc {
+                padding: 6rem 0;
+                border-top: 1px solid var(--border);
+            }
+
+            .sc-in {
+                max-width: 960px;
+                margin: 0 auto;
+                padding: 0 2.5rem;
+            }
+
+            .sc-hd {
+                margin-bottom: 4rem;
+            }
+            .sc-hd.ctr {
+                text-align: center;
+            }
+
+            .ovl {
+                font-size: 0.68rem;
                 font-weight: 700;
-                color: #000;
-                z-index: 10;
-                opacity: 0;
-                animation: fadeIn 1s ease 1s forwards;
+                letter-spacing: 0.3em;
+                text-transform: uppercase;
+                color: var(--gray);
+                margin-bottom: 1rem;
             }
 
-            .time-ms {
-                color: #ff0000;
+            .sc-hd h2 {
+                font-family: "Syne", sans-serif;
+                font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+                font-weight: 800;
+                letter-spacing: -0.03em;
+                margin-bottom: 0.8rem;
+                line-height: 1.15;
             }
 
-            /* Responsive */
-            @media (max-width: 768px) {
-                body {
-                    overflow-y: auto;
-                    height: auto;
-                    min-height: 100vh;
-                }
-
-                .stats-footer {
-                    flex-direction: column;
-                    gap: 1.5rem;
-                    padding: 1.5rem;
-                }
-
-                .corner-brand,
-                .time-display {
-                    display: none;
-                }
-
-                .main-logo {
-                    font-size: clamp(2.25rem, 14vw, 4rem);
-                }
-
-                .description {
-                    font-size: 1rem;
-                    padding: 0 1rem;
-                }
-
-                .cta {
-                    padding: 1.2rem 2.5rem;
-                    font-size: 0.85rem;
-                }
+            .sc-hd h2 em {
+                font-family: "Instrument Serif", serif;
+                font-style: italic;
+                font-weight: 400;
+                color: var(--red);
             }
 
-            @media (max-height: 700px) {
-                body {
-                    overflow-y: auto;
-                    height: auto;
-                    min-height: 100vh;
-                }
+            .sc-hd .sub {
+                font-size: 0.92rem;
+                color: var(--gray);
+                font-weight: 400;
+                line-height: 1.9;
+                max-width: 520px;
+            }
+            .sc-hd.ctr .sub {
+                margin: 0 auto;
             }
 
-            /* Loading */
-            .loading {
-                position: fixed;
+            /* Feature row */
+            .feat-row {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0;
+                border: 1px solid var(--border);
+            }
+
+            .feat {
+                padding: 2.5rem 2rem;
+                border-right: 1px solid var(--border);
+                transition: background 0.3s;
+                position: relative;
+            }
+            .feat:last-child {
+                border-right: none;
+            }
+            .feat:hover {
+                background: var(--gray-bg);
+            }
+
+            /* Red top line on hover */
+            .feat::after {
+                content: "";
+                position: absolute;
                 top: 0;
                 left: 0;
-                width: 100%;
-                height: 100%;
-                background: #fff;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-                animation: fadeOutLoading 1s ease 1.5s forwards;
+                right: 0;
+                height: 2px;
+                background: var(--red);
+                transform: scaleX(0);
+                transform-origin: left;
+                transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .feat:hover::after {
+                transform: scaleX(1);
             }
 
-            @keyframes fadeOutLoading {
-                to {
-                    opacity: 0;
-                    pointer-events: none;
-                }
-            }
-
-            .loading-text {
-                font-family: "Montserrat", sans-serif;
+            .feat-num {
+                font-family: "Syne", sans-serif;
                 font-size: 2rem;
-                font-weight: 900;
-                color: #000;
-                animation: loadingPulse 1s ease-in-out infinite;
+                font-weight: 800;
+                color: var(--gray-lighter);
+                margin-bottom: 1.25rem;
+                transition: color 0.3s;
+            }
+            .feat:hover .feat-num {
+                color: var(--red-dim);
             }
 
-            @keyframes loadingPulse {
-                0%,
-                100% {
-                    opacity: 0.3;
+            .feat h3 {
+                font-family: "Syne", sans-serif;
+                font-size: 1rem;
+                font-weight: 800;
+                margin-bottom: 0.8rem;
+                letter-spacing: -0.01em;
+            }
+
+            .feat p {
+                font-size: 0.88rem;
+                color: var(--gray);
+                font-weight: 400;
+                line-height: 1.85;
+            }
+
+            .feat-tag {
+                display: inline-block;
+                margin-top: 1.2rem;
+                font-size: 0.72rem;
+                letter-spacing: 0.08em;
+                padding: 0.25rem 0.6rem;
+                border: 1px solid var(--border);
+                color: var(--gray);
+            }
+
+            /* Architecture */
+            .arch {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .ar {
+                display: grid;
+                grid-template-columns: 110px 1fr 200px;
+                gap: 2rem;
+                align-items: center;
+                padding: 1.1rem 1.75rem;
+                border-bottom: 1px solid var(--border);
+                transition: all 0.3s;
+                border-left: 2px solid transparent;
+            }
+            .ar:first-child {
+                border-top: 1px solid var(--border);
+            }
+            .ar:hover {
+                background: var(--gray-bg);
+                padding-left: 2.25rem;
+            }
+
+            .ar.now {
+                background: var(--red-dim);
+                border-left-color: var(--red);
+            }
+
+            .ar-l {
+                font-size: 0.68rem;
+                font-weight: 700;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                color: var(--gray);
+            }
+            .ar.now .ar-l {
+                color: var(--red);
+            }
+
+            .ar-d {
+                font-size: 0.88rem;
+                color: var(--gray);
+                font-weight: 400;
+            }
+            .ar.now .ar-d {
+                color: var(--black);
+            }
+
+            .ar-p {
+                display: flex;
+                gap: 0.5rem;
+                justify-content: flex-end;
+                flex-wrap: wrap;
+            }
+            .ar-p a {
+                font-size: 0.72rem;
+                color: var(--gray);
+                text-decoration: none;
+                padding: 0.25rem 0.55rem;
+                border: 1px solid var(--border);
+                transition: all 0.2s;
+            }
+            .ar-p a:hover {
+                border-color: var(--red);
+                color: var(--red);
+            }
+            .ar.now .ar-p a {
+                border-color: rgba(232, 25, 44, 0.2);
+                color: var(--red);
+            }
+
+            /* Use cases */
+            .uc-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0;
+                border: 1px solid var(--border);
+            }
+            .uc {
+                padding: 2.25rem 2rem;
+                border-right: 1px solid var(--border);
+                border-bottom: 1px solid var(--border);
+                transition: background 0.3s;
+            }
+            .uc:nth-child(2n) {
+                border-right: none;
+            }
+            .uc:nth-child(n + 3) {
+                border-bottom: none;
+            }
+            .uc:hover {
+                background: var(--gray-bg);
+            }
+
+            .uc-tag {
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: var(--red);
+                margin-bottom: 0.9rem;
+            }
+
+            .uc h3 {
+                font-family: "Syne", sans-serif;
+                font-size: 1.05rem;
+                font-weight: 700;
+                margin-bottom: 0.6rem;
+                line-height: 1.35;
+                letter-spacing: -0.01em;
+            }
+            .uc p {
+                font-size: 0.88rem;
+                color: var(--gray);
+                line-height: 1.85;
+                font-weight: 400;
+            }
+
+            /* CTA */
+            .cta-sc {
+                padding: 6rem 0;
+                border-top: 1px solid var(--border);
+                text-align: center;
+            }
+            .cta-in {
+                max-width: 560px;
+                margin: 0 auto;
+                padding: 0 2.5rem;
+            }
+            .cta-in h2 {
+                font-family: "Syne", sans-serif;
+                font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+                font-weight: 800;
+                letter-spacing: -0.03em;
+                margin-bottom: 1rem;
+                line-height: 1.15;
+            }
+            .cta-in h2 em {
+                font-family: "Instrument Serif", serif;
+                font-style: italic;
+                font-weight: 400;
+                color: var(--red);
+            }
+            .cta-in p {
+                font-size: 0.92rem;
+                color: var(--gray);
+                font-weight: 400;
+                line-height: 1.9;
+                margin-bottom: 2rem;
+            }
+            .cta-in .btn {
+                margin: 0 0.3rem;
+            }
+
+            /* Footer */
+            footer {
+                padding: 3rem 0 1.5rem;
+                border-top: 1px solid var(--border);
+            }
+            .ft {
+                max-width: 960px;
+                margin: 0 auto;
+                padding: 0 2.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 3rem;
+            }
+            .ft-b .ft-n {
+                font-family: "Syne", sans-serif;
+                font-size: 0.92rem;
+                font-weight: 800;
+                margin-bottom: 0.5rem;
+                display: flex;
+                align-items: center;
+                gap: 0.3rem;
+            }
+            .ft-b .ft-n .a {
+                color: var(--red);
+            }
+            .ft-b p {
+                font-size: 0.82rem;
+                color: var(--gray);
+                font-weight: 400;
+                line-height: 1.8;
+                max-width: 250px;
+            }
+            .ft-cs {
+                display: flex;
+                gap: 3rem;
+            }
+            .ft-c h5 {
+                font-size: 0.62rem;
+                font-weight: 700;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--gray);
+                margin-bottom: 0.6rem;
+            }
+            .ft-c a {
+                display: block;
+                font-size: 0.78rem;
+                color: var(--gray);
+                text-decoration: none;
+                margin-bottom: 0.3rem;
+                transition: color 0.2s;
+            }
+            .ft-c a:hover {
+                color: var(--red);
+            }
+            .ft-end {
+                max-width: 960px;
+                margin: 2rem auto 0;
+                padding: 1.25rem 2.5rem 0;
+                border-top: 1px solid var(--border);
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.72rem;
+                color: var(--gray-light);
+            }
+
+            /* Reveal */
+            .rv {
+                opacity: 0;
+                transform: translateY(14px);
+                transition:
+                    opacity 0.7s ease,
+                    transform 0.7s ease;
+            }
+            .rv.vis {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            @media (max-width: 768px) {
+                .feat-row {
+                    grid-template-columns: 1fr;
                 }
-                50% {
-                    opacity: 1;
+                .feat {
+                    border-right: none;
+                    border-bottom: 1px solid var(--border);
+                }
+                .feat:last-child {
+                    border-bottom: none;
+                }
+                .uc-grid {
+                    grid-template-columns: 1fr;
+                }
+                .uc {
+                    border-right: none !important;
+                    border-bottom: 1px solid var(--border) !important;
+                }
+                .uc:last-child {
+                    border-bottom: none !important;
+                }
+                .ar {
+                    grid-template-columns: 1fr;
+                    gap: 0.3rem;
+                }
+                .ar-p {
+                    justify-content: flex-start;
+                }
+                .stats-bar {
+                    flex-wrap: wrap;
+                    gap: 1rem;
+                    justify-content: center;
+                }
+                .ft {
+                    flex-direction: column;
+                }
+                .ft-cs {
+                    gap: 2rem;
+                }
+                .nav-r a:not(.nav-amp) {
+                    display: none;
+                }
+                header {
+                    padding: 1rem 1.5rem;
                 }
             }
         </style>
     </head>
     <body>
-        <!-- Loading -->
-        <div class="loading">
-            <div class="loading-text">SYNCING...</div>
+        <!-- Loader -->
+        <div class="loader">
+            <div class="loader-inner">
+                <div class="loader-text">SYNCING</div>
+                <div class="loader-bar"></div>
+            </div>
         </div>
 
-        <!-- Canvas -->
-        <canvas id="viz-canvas"></canvas>
+        <canvas id="graph"></canvas>
 
-        <!-- Corner branding -->
-        <div class="corner-brand">
-            <div class="brand-mark">TTC</div>
-            <div class="brand-subtitle">Platform</div>
-        </div>
+        <div class="page">
+            <header>
+                <a href="/" class="logo">
+                    <div class="logo-mark"></div>
+                    <div class="logo-name">TickTickClock</div>
+                </a>
+                <div class="nav-r">
+                    <a href="#capabilities">Capabilities</a>
+                    <a href="#methods">Methods</a>
+                    <a href="#architecture">Stack</a>
+                    <a href="#applications">Use Cases</a>
+                    <a href="https://ampersandboxdesign.com" class="nav-amp">
+                        [&] Portfolio
+                    </a>
+                </div>
+            </header>
 
-        <!-- Time display -->
-        <div class="time-display">
-            <span id="time-hours">00</span>:<span id="time-minutes">00</span
-            >:<span id="time-seconds">00</span>.<span
-                class="time-ms"
-                id="time-ms"
-                >000</span
-            >
-        </div>
+            <!-- Live time — now inside hero -->
 
-        <!-- Main content -->
-        <div class="overlay">
-            <h1 class="main-logo">
-                <span class="word word-1">TICK</span>
-                <span class="word word-2">TICK</span>
-                <span class="word word-3">CLOCK</span>
-            </h1>
+            <section class="hero">
+                <div class="hero-c">
+                    <h1 class="hero-title">
+                        <span class="w w1">TICK</span>
+                        <span class="w w2">TICK</span>
+                        <span class="w w3">CLOCK</span>
+                    </h1>
 
-            <p class="description">
-                <strong>Sub-10ms precision</strong> synchronization for digital
-                twin infrastructure. Built for manufacturing, healthcare, and
-                aerospace.
-            </p>
+                    <div class="live-time" id="liveTime">
+                        00:00:00.<span class="ms">000</span>
+                    </div>
 
-            <a
-                href="https://app.fleetprompt.com/marketplace?q=TickTickClock"
-                class="cta"
-            >
-                <span>Discover on FleetPrompt</span>
-            </a>
-        </div>
+                    <p class="hero-sub">
+                        Every tick is a <strong>learning opportunity</strong>.
+                        Every pattern has a <strong>rhythm</strong>.
+                    </p>
 
-        <div
-            style="
-                z-index: 999;
-                position: fixed;
-                bottom: 1em;
-                width: 100%;
-                text-align: center;
-            "
-        >
-            &copy; <span id="currentYear"></span> TickTickClock.com ... Powered
-            by <a href="https://ampersandboxdesign.com">[&]</a>
+                    <p class="hero-desc">
+                        The time-series continual learning engine for the [&]
+                        stack. Temporal anomaly detection, digital twin
+                        synchronization, and evolving pattern recognition.
+                    </p>
+
+                    <div class="hero-btns">
+                        <a href="https://fleetprompt.com" class="btn btn-blk"
+                            ><span>Discover on FleetPrompt</span></a
+                        >
+                        <a
+                            href="https://ampersandboxdesign.com"
+                            class="btn btn-out"
+                            >Back to [&]</a
+                        >
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats bar -->
+            <div class="stats-bar" id="statsBar">
+                <div class="stat">
+                    <span class="stat-val">&lt;10<span class="u">ms</span></span
+                    ><span class="stat-lbl">Sync Precision</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-val"
+                        >∞<span class="u"> streams</span></span
+                    ><span class="stat-lbl">Concurrent Series</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-val"
+                        >Zero<span class="u"> drift</span></span
+                    ><span class="stat-lbl">Temporal Forgetting</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-val" id="tickCounter">0</span
+                    ><span class="stat-lbl">Ticks Observed</span>
+                </div>
+            </div>
+
+            <!-- Below fold -->
+            <div class="below">
+                <section class="sc" id="capabilities">
+                    <div class="sc-in">
+                        <div class="sc-hd ctr rv">
+                            <div class="ovl">Capabilities</div>
+                            <h2>
+                                Three dimensions of
+                                <em>temporal intelligence</em>
+                            </h2>
+                            <p class="sub">
+                                Every event has a timestamp. Every pattern has a
+                                rhythm. TickTickClock gives AI agents temporal
+                                awareness that learns and evolves.
+                            </p>
+                        </div>
+                        <div class="feat-row">
+                            <div class="feat rv">
+                                <div class="feat-num">01</div>
+                                <h3>Detect</h3>
+                                <p>
+                                    Adaptive State-Space anomaly detection
+                                    inspired by the Mamba architecture (Gu &
+                                    Dao, 2023). Selective state-space models
+                                    with adaptive gating dynamically modulate
+                                    hidden state updates based on contextual
+                                    cues — capturing both short-range and
+                                    long-range temporal dependencies while
+                                    remaining computationally efficient on
+                                    streaming sensor data.
+                                </p>
+                                <span class="feat-tag"
+                                    >Mamba SSM · Sparse Attention</span
+                                >
+                            </div>
+                            <div class="feat rv">
+                                <div class="feat-num">02</div>
+                                <h3>Synchronize</h3>
+                                <p>
+                                    Epoch-aware delta-CRDT replication inspired
+                                    by GeoCoCo (2025). Conflict-free replicated
+                                    data types with commutative, associative,
+                                    and idempotent merge functions ensure
+                                    convergence under arbitrary message
+                                    reordering, delivery delays, and network
+                                    partitions. Local state mirrors global state
+                                    deterministically — no coordination
+                                    overhead.
+                                </p>
+                                <span class="feat-tag"
+                                    >Delta-CRDTs · Event Sourcing</span
+                                >
+                            </div>
+                            <div class="feat rv">
+                                <div class="feat-num">03</div>
+                                <h3>Predict</h3>
+                                <p>
+                                    Continual Compositionality & Orchestration
+                                    (CCO) — the research direction identified by
+                                    the continual learning community as most
+                                    promising for 2026. Multi-timescale memory
+                                    modules that update at different
+                                    frequencies, inspired by Google's Nested
+                                    Learning and Titans architectures. Fast
+                                    memory promotes to slow memory. No
+                                    catastrophic forgetting. No retraining.
+                                </p>
+                                <span class="feat-tag"
+                                    >Nested Learning · Titans · CCO</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="sc" id="methods">
+                    <div class="sc-in">
+                        <div class="sc-hd rv">
+                            <div class="ovl">Methods & Protocols</div>
+                            <h2>Built on <em>real research</em></h2>
+                            <p class="sub">
+                                TickTickClock implements methods drawn from the
+                                latest advances in time-series ML, distributed
+                                systems, and continual learning.
+                            </p>
+                        </div>
+                        <div class="uc-grid">
+                            <div class="uc rv">
+                                <div class="uc-tag">Architecture</div>
+                                <h3>Selective State-Space Models (Mamba)</h3>
+                                <p>
+                                    Linear-time sequence modeling with
+                                    input-dependent state transitions. Unlike
+                                    Transformers, SSMs scale linearly with
+                                    sequence length while capturing long-range
+                                    dependencies — critical for high-frequency
+                                    sensor streams where Transformer attention
+                                    becomes prohibitively expensive.
+                                </p>
+                            </div>
+                            <div class="uc rv">
+                                <div class="uc-tag">Convergence</div>
+                                <h3>Delta-CRDT Replication</h3>
+                                <p>
+                                    Conflict-free replicated data types that
+                                    transmit only state deltas, not full state.
+                                    Merge operations satisfy ACI properties
+                                    (Associative, Commutative, Idempotent),
+                                    guaranteeing eventual consistency regardless
+                                    of message ordering, duplication, or
+                                    partition events.
+                                </p>
+                            </div>
+                            <div class="uc rv">
+                                <div class="uc-tag">Memory</div>
+                                <h3>Multi-Timescale Consolidation</h3>
+                                <p>
+                                    Inspired by Google's Nested Learning
+                                    (NeurIPS 2025) and the Titans architecture —
+                                    a continuum memory system where
+                                    fast-updating modules handle immediate
+                                    context and slow-updating modules store
+                                    long-term knowledge. Memory consolidation
+                                    happens at inference time, not during
+                                    retraining.
+                                </p>
+                            </div>
+                            <div class="uc rv">
+                                <div class="uc-tag">Protocol</div>
+                                <h3>MCP-First API Design</h3>
+                                <p>
+                                    Every TickTickClock endpoint is an MCP
+                                    server. Anthropic's Model Context Protocol
+                                    standardizes how AI agents connect to tools
+                                    — meaning any MCP-compatible agent can query
+                                    temporal state, subscribe to anomaly
+                                    streams, or request predictions without
+                                    custom integration.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="sc" id="architecture">
+                    <div class="sc-in">
+                        <div class="sc-hd rv">
+                            <div class="ovl">Architecture</div>
+                            <h2>One system, not <em>ten products</em></h2>
+                            <p class="sub">
+                                TickTickClock is the Intelligence layer —
+                                temporal awareness where GeoFleetic provides
+                                spatial. Together: when and where.
+                            </p>
+                        </div>
+                        <div class="arch">
+                            <div class="ar rv">
+                                <div class="ar-l">Interface</div>
+                                <div class="ar-d">
+                                    Agent specs and contracts
+                                </div>
+                                <div class="ar-p">
+                                    <a href="https://specprompt.com"
+                                        >SpecPrompt</a
+                                    >
+                                </div>
+                            </div>
+                            <div class="ar rv">
+                                <div class="ar-l">Creation</div>
+                                <div class="ar-d">Build and deploy agents</div>
+                                <div class="ar-p">
+                                    <a href="https://agentelic.com"
+                                        >Agentelic</a
+                                    >
+                                </div>
+                            </div>
+                            <div class="ar rv">
+                                <div class="ar-l">Orchestration</div>
+                                <div class="ar-d">Multi-agent coordination</div>
+                                <div class="ar-p">
+                                    <a href="https://delegatic.com">Delegatic</a
+                                    ><a href="https://agentromatic.com"
+                                        >AgenTroMatic</a
+                                    >
+                                </div>
+                            </div>
+                            <div class="ar rv">
+                                <div class="ar-l">Deliberation</div>
+                                <div class="ar-d">Structured consensus</div>
+                                <div class="ar-p">
+                                    <a href="https://deliberatic.com"
+                                        >Deliberatic</a
+                                    >
+                                </div>
+                            </div>
+                            <div class="ar rv">
+                                <div class="ar-l">Memory</div>
+                                <div class="ar-d">
+                                    Continual learning substrate
+                                </div>
+                                <div class="ar-p">
+                                    <a href="https://graphonomous.com"
+                                        >Graphonomous</a
+                                    >
+                                </div>
+                            </div>
+                            <div class="ar rv">
+                                <div class="ar-l">Distribution</div>
+                                <div class="ar-d">CL strategies as skills</div>
+                                <div class="ar-p">
+                                    <a href="https://fleetprompt.com"
+                                        >FleetPrompt</a
+                                    >
+                                </div>
+                            </div>
+                            <div class="ar now rv">
+                                <div class="ar-l">Intelligence</div>
+                                <div class="ar-d">
+                                    Temporal + spatial awareness
+                                </div>
+                                <div class="ar-p">
+                                    <a href="/">TickTickClock</a
+                                    ><a href="https://geofleetic.com"
+                                        >GeoFleetic</a
+                                    >
+                                </div>
+                            </div>
+                            <div class="ar rv">
+                                <div class="ar-l">Infrastructure</div>
+                                <div class="ar-d">Managed hosting</div>
+                                <div class="ar-p">
+                                    <a href="https://webhost.systems"
+                                        >WebHost Systems</a
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="sc" id="applications">
+                    <div class="sc-in">
+                        <div class="sc-hd ctr rv">
+                            <div class="ovl">Applications</div>
+                            <h2>What temporal intelligence <em>unlocks</em></h2>
+                        </div>
+                        <div class="uc-grid">
+                            <div class="uc rv">
+                                <div class="uc-tag">Manufacturing</div>
+                                <h3>
+                                    Predictive maintenance via streaming anomaly
+                                    detection
+                                </h3>
+                                <p>
+                                    Vibration, temperature, and pressure streams
+                                    processed through Mamba-SSM with adaptive
+                                    gating. Learns per-machine temporal
+                                    baselines that evolve — detects degradation
+                                    signatures weeks before failure using
+                                    association discrepancy between expected and
+                                    observed patterns.
+                                </p>
+                            </div>
+                            <div class="uc rv">
+                                <div class="uc-tag">Healthcare</div>
+                                <h3>Context-aware patient vital monitoring</h3>
+                                <p>
+                                    Heart rate at 3am differs from 3pm during
+                                    exercise. Multi-timescale memory builds
+                                    per-patient baselines that consolidate over
+                                    days and weeks. Distribution-shift-aware
+                                    models handle non-stationary physiology
+                                    without false positive storms during routine
+                                    changes.
+                                </p>
+                            </div>
+                            <div class="uc rv">
+                                <div class="uc-tag">Logistics</div>
+                                <h3>Temporal + spatial fleet intelligence</h3>
+                                <p>
+                                    Paired with GeoFleetic for time-aware route
+                                    optimization. Delta-CRDT synchronization
+                                    keeps fleet state consistent across
+                                    vehicles. Temporal patterns (time-of-day,
+                                    day-of-week, seasonal) compound with spatial
+                                    data for demand prediction that sharpens
+                                    every delivery cycle.
+                                </p>
+                            </div>
+                            <div class="uc rv">
+                                <div class="uc-tag">Agent Systems</div>
+                                <h3>Temporal memory for Graphonomous agents</h3>
+                                <p>
+                                    MCP-connected temporal context injection.
+                                    Agents query TickTickClock for "what
+                                    happened when" — retrieving sequenced event
+                                    histories, cadence patterns, and temporal
+                                    anomalies. Enables agents to reason about
+                                    time without embedding temporal logic into
+                                    each model.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="cta-sc">
+                    <div class="cta-in rv">
+                        <h2>Every tick is a <em>learning</em> opportunity</h2>
+                        <p>
+                            Part of the [&] Ampersand Box Design portfolio — the
+                            infrastructure that makes AI learn, adapt, and
+                            decide. Elixir/OTP. Edge-native. MCP-first.
+                        </p>
+                        <a
+                            href="https://github.com/c-u-l8er/ticktickclock.com"
+                            class="btn btn-blk"
+                            ><span>GitHub</span></a
+                        >
+                        <a
+                            href="https://ampersandboxdesign.com"
+                            class="btn btn-out"
+                            >Explore [&]</a
+                        >
+                    </div>
+                </section>
+
+                <footer>
+                    <div class="ft">
+                        <div class="ft-b">
+                            <div class="ft-n">
+                                [<span class="a">&</span>] Ampersand Box
+                            </div>
+                            <p>
+                                Building the infrastructure that makes AI agents
+                                learn, adapt, and decide.
+                            </p>
+                        </div>
+                        <div class="ft-cs">
+                            <div class="ft-c">
+                                <h5>Portfolio</h5>
+                                <a href="https://graphonomous.com"
+                                    >Graphonomous</a
+                                ><a href="https://deliberatic.com"
+                                    >Deliberatic</a
+                                ><a href="https://opensentience.org"
+                                    >OpenSentience</a
+                                ><a href="https://fleetprompt.com"
+                                    >FleetPrompt</a
+                                ><a href="https://delegatic.com">Delegatic</a
+                                ><a href="https://agentelic.com">Agentelic</a>
+                            </div>
+                            <div class="ft-c">
+                                <h5>Company</h5>
+                                <a href="https://ampersandboxdesign.com"
+                                    >[&] Home</a
+                                ><a href="https://traaviis.com">traaviis.com</a
+                                ><a href="https://c-u-l8er.link"
+                                    >c-u-l8er.link</a
+                                ><a href="https://github.com/c-u-l8er"
+                                    >GitHub</a
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ft-end">
+                        <p>&copy; <span id="yr"></span> ticktickclock.com</p>
+                        <p>All systems synchronized</p>
+                    </div>
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                </footer>
+            </div>
         </div>
 
         <script>
-            // Set current year dynamically
-            document.getElementById("currentYear").textContent =
+            document.getElementById("yr").textContent =
                 new Date().getFullYear();
 
-            // Canvas setup
-            const canvas = document.getElementById("viz-canvas");
-            const ctx = canvas.getContext("2d");
-            let width, height;
+            // ═══ Clock ═══
+            function tickClock() {
+                const n = new Date();
+                document.getElementById("liveTime").innerHTML =
+                    `${String(n.getHours()).padStart(2, "0")}:${String(n.getMinutes()).padStart(2, "0")}:${String(n.getSeconds()).padStart(2, "0")}.<span class="ms">${String(n.getMilliseconds()).padStart(3, "0")}</span>`;
+            }
+            setInterval(tickClock, 37);
+            tickClock();
+
+            // ═══ Scroll reveal ═══
+            const obs = new IntersectionObserver(
+                (es) => {
+                    es.forEach((e) => {
+                        if (e.isIntersecting) e.target.classList.add("vis");
+                    });
+                },
+                { threshold: 0.08, rootMargin: "0px 0px -30px 0px" },
+            );
+            document.querySelectorAll(".rv").forEach((el) => obs.observe(el));
+
+            // Hide stats bar when scrolled past hero
+            const statsBar = document.getElementById("statsBar");
+            window.addEventListener("scroll", () => {
+                statsBar.classList.toggle(
+                    "hidden",
+                    window.scrollY > window.innerHeight * 0.5,
+                );
+            });
+
+            // Smooth scroll
+            document.querySelectorAll('a[href^="#"]').forEach((a) => {
+                a.addEventListener("click", (e) => {
+                    const h = a.getAttribute("href");
+                    if (!h || h === "#" || h.length < 2) return;
+                    const t = document.getElementById(h.slice(1));
+                    if (!t) return;
+                    e.preventDefault();
+                    t.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+            });
+
+            // ═══════════════════════════════════════════
+            // HEARTBEAT GRAPH NETWORK
+            // ═══════════════════════════════════════════
+            const cv = document.getElementById("graph");
+            const ctx = cv.getContext("2d");
+            let W, H, cx, cy, maxR;
+            let mouseX = -9999,
+                mouseY = -9999;
 
             function resize() {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
+                W = cv.width = innerWidth;
+                H = cv.height = innerHeight;
+                cx = W / 2;
+                cy = H / 2;
+                maxR = Math.min(W, H) / 2 - 40;
             }
-            resize();
-            window.addEventListener("resize", resize);
-
-            // Mouse tracking
-            let mouseX = width / 2;
-            let mouseY = height / 2;
 
             document.addEventListener("mousemove", (e) => {
                 mouseX = e.clientX;
                 mouseY = e.clientY;
             });
+            document.addEventListener("mouseleave", () => {
+                mouseX = -9999;
+                mouseY = -9999;
+            });
 
-            // Time display
-            function updateTime() {
-                const now = new Date();
-                document.getElementById("time-hours").textContent = String(
-                    now.getHours(),
-                ).padStart(2, "0");
-                document.getElementById("time-minutes").textContent = String(
-                    now.getMinutes(),
-                ).padStart(2, "0");
-                document.getElementById("time-seconds").textContent = String(
-                    now.getSeconds(),
-                ).padStart(2, "0");
-                document.getElementById("time-ms").textContent = String(
-                    now.getMilliseconds(),
-                ).padStart(3, "0");
-            }
-            setInterval(updateTime, 10);
-
-            // Node in a geometric graph network
-            class GraphNode {
-                constructor(x, y, index) {
+            // ─── Node ───
+            class Node {
+                constructor(x, y, idx) {
+                    this.bx = x;
+                    this.by = y;
                     this.x = x;
                     this.y = y;
-                    this.index = index;
-                    this.baseX = x;
-                    this.baseY = y;
                     this.vx = 0;
                     this.vy = 0;
-                    this.radius = 4;
-                    this.targetRadius = 4;
-                    this.connections = [];
-                    this.activity = Math.random();
-                    this.phase = Math.random() * Math.PI * 2;
-                    this.color = "#000000";
+                    this.idx = idx;
+                    this.r = 3;
+                    this.tr = 3;
+                    this.conns = [];
                     this.energy = 0;
-                    this.tickPhase = index * 0.05; // Stagger tick timing
-                    this.lastTickState = 0;
-                    this.tickIntensity = 0;
+                    this.activity = Math.random();
+                    this.phase = idx * 0.04;
+                    this.lastTick = 0;
+                    this.tickPow = 0;
+                    // Distance from center for wave propagation
+                    this.distFromCenter = Math.sqrt(
+                        (x - cx) ** 2 + (y - cy) ** 2,
+                    );
                 }
 
-                update(time, mouseX, mouseY, allNodes, globalTick) {
-                    // Calculate distance to mouse
+                update(time) {
+                    // Mouse repulsion
                     const dx = mouseX - this.x;
                     const dy = mouseY - this.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const d = Math.sqrt(dx * dx + dy * dy);
 
-                    // Mouse repulsion with tick enhancement
-                    if (distance < 250) {
-                        const force = (1 - distance / 250) * 4;
-                        const angle = Math.atan2(dy, dx);
-
-                        // Add tick impulse to mouse force
-                        const tickForce = force * (1 + this.tickIntensity * 2);
-                        this.vx -= Math.cos(angle) * tickForce;
-                        this.vy -= Math.sin(angle) * tickForce;
-                        this.energy = Math.min(1, this.energy + 0.15);
+                    if (d < 280 && d > 0) {
+                        const f = (1 - d / 280) * 5;
+                        const a = Math.atan2(dy, dx);
+                        this.vx -= Math.cos(a) * f * (1 + this.tickPow * 2);
+                        this.vy -= Math.sin(a) * f * (1 + this.tickPow * 2);
+                        this.energy = Math.min(1, this.energy + 0.12);
                     } else {
-                        this.energy *= 0.92;
+                        this.energy *= 0.93;
                     }
 
-                    // TICK behavior - synchronized sharp pulses
-                    const tickValue = Math.sin(time * 0.05 + this.tickPhase);
-                    const tickTrigger =
-                        tickValue > 0 && this.lastTickState <= 0; // Rising edge detection
+                    // TICK — propagating wave from center
+                    // The tick wave travels outward: nodes closer to center tick first
+                    const waveSpeed = 0.06;
+                    const waveDelay = this.distFromCenter * 0.003; // Propagation delay
+                    const tickVal = Math.sin(time * waveSpeed - waveDelay);
+                    const trigger = tickVal > 0.7 && this.lastTick <= 0.7; // Sharp threshold
 
-                    if (tickTrigger) {
-                        // Sharp tick impulse
-                        this.tickIntensity = 1;
-
-                        // Snap position with tick
-                        const tickAngle = (time + this.index) * 0.3;
-                        const tickMagnitude = 15 + this.energy * 20;
-                        this.vx += Math.cos(tickAngle) * tickMagnitude;
-                        this.vy += Math.sin(tickAngle) * tickMagnitude;
-
-                        // Activity spike on tick
+                    if (trigger) {
+                        this.tickPow = 1;
+                        const tAngle = (time + this.idx) * 0.25;
+                        const tMag = 12 + this.energy * 18;
+                        this.vx += Math.cos(tAngle) * tMag;
+                        this.vy += Math.sin(tAngle) * tMag;
                         this.activity = 1;
                     } else {
-                        // Decay tick intensity
-                        this.tickIntensity *= 0.85;
-                        this.activity *= 0.95;
+                        this.tickPow *= 0.87;
+                        this.activity *= 0.96;
                     }
 
-                    this.lastTickState = tickValue;
+                    this.lastTick = tickVal;
 
-                    // Spring back to base position (stronger during tick)
-                    const springStrength = 0.015 + this.tickIntensity * 0.03;
-                    this.vx += (this.baseX - this.x) * springStrength;
-                    this.vy += (this.baseY - this.y) * springStrength;
+                    // Spring return
+                    const spring = 0.018 + this.tickPow * 0.025;
+                    this.vx += (this.bx - this.x) * spring;
+                    this.vy += (this.by - this.y) * spring;
 
-                    // Apply velocity with damping
-                    const damping = 0.88 - this.tickIntensity * 0.1; // Less damping during tick
-                    this.vx *= damping;
-                    this.vy *= damping;
+                    // Damping
+                    const damp = 0.88 - this.tickPow * 0.08;
+                    this.vx *= damp;
+                    this.vy *= damp;
                     this.x += this.vx;
                     this.y += this.vy;
 
-                    // Dynamic radius - snaps larger on tick
-                    const tickRadiusBoost = this.tickIntensity * 5;
-                    this.targetRadius =
-                        3 +
+                    // Radius
+                    this.tr =
+                        2.5 +
                         this.activity * 2 +
-                        this.energy * 6 +
-                        tickRadiusBoost;
-                    this.radius += (this.targetRadius - this.radius) * 0.3;
-
-                    // Color based on energy and tick
-                    const r = Math.floor(
-                        (this.energy + this.tickIntensity * 0.3) * 255,
-                    );
-                    this.color = `rgb(${r}, 0, 0)`;
+                        this.energy * 5 +
+                        this.tickPow * 4;
+                    this.r += (this.tr - this.r) * 0.25;
                 }
 
                 draw() {
-                    // Enhanced glow during tick
-                    const glowIntensity = Math.max(
-                        this.energy,
-                        this.tickIntensity * 0.8,
-                    );
-                    if (glowIntensity > 0.1 || this.activity > 0.7) {
-                        const gradient = ctx.createRadialGradient(
+                    const intense = Math.max(this.energy, this.tickPow * 0.8);
+
+                    // Glow
+                    if (intense > 0.15 || this.activity > 0.6) {
+                        const g = ctx.createRadialGradient(
                             this.x,
                             this.y,
                             0,
                             this.x,
                             this.y,
-                            this.radius * 4,
+                            this.r * 4,
                         );
-                        const glowColor =
-                            this.tickIntensity > 0.5
-                                ? `rgba(255, 0, 0, ${glowIntensity * 0.6})`
-                                : `rgba(0, 0, 0, ${this.activity * 0.3})`;
-                        gradient.addColorStop(0, glowColor);
-                        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-                        ctx.fillStyle = gradient;
+                        g.addColorStop(
+                            0,
+                            this.tickPow > 0.4
+                                ? `rgba(232,25,44,${intense * 0.5})`
+                                : `rgba(0,0,0,${this.activity * 0.2})`,
+                        );
+                        g.addColorStop(1, "rgba(0,0,0,0)");
+                        ctx.fillStyle = g;
                         ctx.beginPath();
-                        ctx.arc(
-                            this.x,
-                            this.y,
-                            this.radius * 4,
-                            0,
-                            Math.PI * 2,
-                        );
+                        ctx.arc(this.x, this.y, this.r * 4, 0, Math.PI * 2);
                         ctx.fill();
                     }
 
-                    // Node body
+                    // Body
+                    const red = Math.floor(
+                        (this.energy + this.tickPow * 0.4) * 232,
+                    );
                     ctx.fillStyle =
-                        this.energy > 0.3 || this.tickIntensity > 0.3
-                            ? this.color
-                            : "#000000";
+                        this.energy > 0.25 || this.tickPow > 0.25
+                            ? `rgb(${red},${Math.floor(25 * (1 - this.tickPow))},${Math.floor(44 * (1 - this.tickPow))})`
+                            : "#0a0a0a";
                     ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Node outline - thicker during tick
-                    const outlineWidth = 1 + this.tickIntensity * 2;
+                    // Outline
                     ctx.strokeStyle =
-                        this.energy > 0.5 || this.tickIntensity > 0.5
-                            ? "#ff0000"
-                            : "rgba(0, 0, 0, 0.3)";
-                    ctx.lineWidth = outlineWidth;
+                        this.energy > 0.4 || this.tickPow > 0.4
+                            ? `rgba(232,25,44,${0.5 + this.tickPow * 0.5})`
+                            : "rgba(0,0,0,0.15)";
+                    ctx.lineWidth = 1 + this.tickPow * 1.5;
                     ctx.stroke();
 
-                    // Tick indicator ring
-                    if (this.tickIntensity > 0.2) {
-                        ctx.strokeStyle = `rgba(255, 0, 0, ${this.tickIntensity * 0.6})`;
-                        ctx.lineWidth = 2;
+                    // Tick ring
+                    if (this.tickPow > 0.2) {
+                        ctx.strokeStyle = `rgba(232,25,44,${this.tickPow * 0.5})`;
+                        ctx.lineWidth = 1.5;
                         ctx.beginPath();
                         ctx.arc(
                             this.x,
                             this.y,
-                            this.radius + 3 + this.tickIntensity * 5,
+                            this.r + 3 + this.tickPow * 6,
                             0,
                             Math.PI * 2,
                         );
@@ -601,185 +1596,255 @@
                     }
                 }
 
-                drawConnections() {
-                    this.connections.forEach((other) => {
-                        const dx = other.x - this.x;
-                        const dy = other.y - this.y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
+                drawConnections(time) {
+                    this.conns.forEach((other) => {
+                        const tickStr = Math.max(this.tickPow, other.tickPow);
+                        const actLvl = (this.activity + other.activity) / 2;
+                        const enLvl = Math.max(this.energy, other.energy);
+                        const baseOp = Math.max(0.03, actLvl * 0.2);
+                        const op = baseOp + enLvl * 0.5 + tickStr * 0.4;
 
-                        // Connection strength influenced by both nodes' tick states
-                        const tickStrength = Math.max(
-                            this.tickIntensity,
-                            other.tickIntensity,
-                        );
-                        const activityLevel =
-                            (this.activity + other.activity) / 2;
-                        const energyLevel = Math.max(this.energy, other.energy);
-                        const baseOpacity = Math.max(0.05, activityLevel * 0.3);
-                        const opacity =
-                            baseOpacity +
-                            energyLevel * 0.6 +
-                            tickStrength * 0.4;
+                        const lineCol =
+                            enLvl > 0.25 || tickStr > 0.25
+                                ? `rgba(232,25,44,${Math.min(1, op)})`
+                                : `rgba(0,0,0,${Math.min(1, op)})`;
 
-                        // Line color - red if energized or ticking, black otherwise
-                        const lineColor =
-                            energyLevel > 0.3 || tickStrength > 0.3
-                                ? `rgba(255, 0, 0, ${opacity})`
-                                : `rgba(0, 0, 0, ${opacity})`;
-
-                        const lineWidth =
-                            1 + tickStrength * 2 + energyLevel * 1;
-                        ctx.strokeStyle = lineColor;
-                        ctx.lineWidth = lineWidth;
+                        ctx.strokeStyle = lineCol;
+                        ctx.lineWidth = 0.8 + tickStr * 2 + enLvl * 0.8;
                         ctx.beginPath();
                         ctx.moveTo(this.x, this.y);
                         ctx.lineTo(other.x, other.y);
                         ctx.stroke();
 
-                        // Animated pulse along connection - faster during tick
-                        if (
-                            (energyLevel > 0.5 && activityLevel > 0.6) ||
-                            tickStrength > 0.5
-                        ) {
-                            const pulseSpeed = 0.05 + tickStrength * 0.1;
-                            const pulsePos = (time * pulseSpeed) % 1;
-                            const pulseX = this.x + dx * pulsePos;
-                            const pulseY = this.y + dy * pulsePos;
+                        // Pulse along connection
+                        if ((enLvl > 0.4 && actLvl > 0.5) || tickStr > 0.4) {
+                            const dx = other.x - this.x;
+                            const dy = other.y - this.y;
+                            const spd = 0.04 + tickStr * 0.08;
+                            const pos = (time * spd + this.idx * 0.1) % 1;
+                            const px = this.x + dx * pos;
+                            const py = this.y + dy * pos;
 
-                            const pulseSize = 2 + tickStrength * 3;
                             ctx.fillStyle =
-                                tickStrength > 0.3
-                                    ? "rgba(255, 0, 0, 1)"
-                                    : "rgba(255, 0, 0, 0.8)";
+                                tickStr > 0.3
+                                    ? "rgba(232,25,44,0.9)"
+                                    : "rgba(232,25,44,0.6)";
                             ctx.beginPath();
-                            ctx.arc(pulseX, pulseY, pulseSize, 0, Math.PI * 2);
+                            ctx.arc(
+                                px,
+                                py,
+                                1.5 + tickStr * 2.5,
+                                0,
+                                Math.PI * 2,
+                            );
                             ctx.fill();
                         }
                     });
                 }
             }
 
-            // Create geometric graph network
-            const nodes = [];
-            const nodeCount = 80;
-            const centerX = width / 2;
-            const centerY = height / 2;
+            // ─── Build graph ───
+            let nodes = [];
 
-            // Calculate maximum radius to reach screen edges (with some padding)
-            const maxRadius = Math.min(width, height) / 2 - 50;
+            function buildGraph() {
+                resize();
+                nodes = [];
 
-            // Create nodes in geometric patterns
-            // Outer circle pattern - extends to screen edges
-            for (let i = 0; i < 30; i++) {
-                const angle = (i / 30) * Math.PI * 2;
-                const radius =
-                    maxRadius * 0.85 + Math.random() * (maxRadius * 0.15);
-                const x = centerX + Math.cos(angle) * radius;
-                const y = centerY + Math.sin(angle) * radius;
-                nodes.push(new GraphNode(x, y, i));
-            }
+                // Outer ring
+                const outerCount = Math.max(24, Math.floor(W / 50));
+                for (let i = 0; i < outerCount; i++) {
+                    const a = (i / outerCount) * Math.PI * 2;
+                    const r = maxR * (0.82 + Math.random() * 0.18);
+                    nodes.push(
+                        new Node(cx + Math.cos(a) * r, cy + Math.sin(a) * r, i),
+                    );
+                }
 
-            // Inner circle - scaled proportionally
-            for (let i = 0; i < 20; i++) {
-                const angle = (i / 20) * Math.PI * 2 + 0.5;
-                const radius =
-                    maxRadius * 0.35 + Math.random() * (maxRadius * 0.2);
-                const x = centerX + Math.cos(angle) * radius;
-                const y = centerY + Math.sin(angle) * radius;
-                nodes.push(new GraphNode(x, y, 30 + i));
-            }
-
-            // Random scattered nodes - fill the space
-            for (let i = 0; i < 30; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const radius = Math.random() * maxRadius * 0.9;
-                const x = centerX + Math.cos(angle) * radius;
-                const y = centerY + Math.sin(angle) * radius;
-                nodes.push(new GraphNode(x, y, 50 + i));
-            }
-
-            // Create connections (geometric graph structure)
-            nodes.forEach((node, i) => {
-                // Connect to nearest neighbors
-                const distances = nodes
-                    .map((other, j) => ({
-                        node: other,
-                        distance: Math.sqrt(
-                            (node.baseX - other.baseX) ** 2 +
-                                (node.baseY - other.baseY) ** 2,
+                // Middle ring
+                const midCount = Math.max(16, Math.floor(W / 70));
+                for (let i = 0; i < midCount; i++) {
+                    const a = (i / midCount) * Math.PI * 2 + 0.3;
+                    const r = maxR * (0.4 + Math.random() * 0.2);
+                    nodes.push(
+                        new Node(
+                            cx + Math.cos(a) * r,
+                            cy + Math.sin(a) * r,
+                            outerCount + i,
                         ),
-                        index: j,
-                    }))
-                    .filter((d) => d.index !== i)
-                    .sort((a, b) => a.distance - b.distance);
-
-                // Connect to 3-6 nearest neighbors
-                const connectionCount = 3 + Math.floor(Math.random() * 3);
-                for (
-                    let j = 0;
-                    j < Math.min(connectionCount, distances.length);
-                    j++
-                ) {
-                    if (!node.connections.includes(distances[j].node)) {
-                        node.connections.push(distances[j].node);
-                    }
+                    );
                 }
-            });
 
-            // Add some random long-range connections for complexity
-            for (let i = 0; i < 25; i++) {
-                const node1 = nodes[Math.floor(Math.random() * nodes.length)];
-                const node2 = nodes[Math.floor(Math.random() * nodes.length)];
-                if (node1 !== node2 && !node1.connections.includes(node2)) {
-                    node1.connections.push(node2);
+                // Inner cluster
+                const innerCount = Math.max(8, Math.floor(W / 120));
+                for (let i = 0; i < innerCount; i++) {
+                    const a = (i / innerCount) * Math.PI * 2 + 0.7;
+                    const r = maxR * (0.08 + Math.random() * 0.18);
+                    nodes.push(
+                        new Node(
+                            cx + Math.cos(a) * r,
+                            cy + Math.sin(a) * r,
+                            outerCount + midCount + i,
+                        ),
+                    );
+                }
+
+                // Scattered fill
+                const scatterCount = Math.max(20, Math.floor((W * H) / 25000));
+                for (let i = 0; i < scatterCount; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const r = Math.random() * maxR * 0.9;
+                    nodes.push(
+                        new Node(
+                            cx + Math.cos(a) * r,
+                            cy + Math.sin(a) * r,
+                            outerCount + midCount + innerCount + i,
+                        ),
+                    );
+                }
+
+                // Recalc center distances
+                nodes.forEach((n) => {
+                    n.distFromCenter = Math.sqrt(
+                        (n.bx - cx) ** 2 + (n.by - cy) ** 2,
+                    );
+                });
+
+                // Connections — nearest neighbors
+                nodes.forEach((node, i) => {
+                    const dists = nodes
+                        .map((o, j) => ({
+                            n: o,
+                            d: Math.sqrt(
+                                (node.bx - o.bx) ** 2 + (node.by - o.by) ** 2,
+                            ),
+                            j,
+                        }))
+                        .filter((x) => x.j !== i)
+                        .sort((a, b) => a.d - b.d);
+
+                    const cc = 3 + Math.floor(Math.random() * 3);
+                    for (let j = 0; j < Math.min(cc, dists.length); j++) {
+                        if (!node.conns.includes(dists[j].n)) {
+                            node.conns.push(dists[j].n);
+                        }
+                    }
+                });
+
+                // Long-range connections
+                const longCount = Math.floor(nodes.length * 0.15);
+                for (let i = 0; i < longCount; i++) {
+                    const a = nodes[Math.floor(Math.random() * nodes.length)];
+                    const b = nodes[Math.floor(Math.random() * nodes.length)];
+                    if (a !== b && !a.conns.includes(b)) a.conns.push(b);
                 }
             }
 
-            // Global tick counter for audio-like display
-            let globalTickCount = 0;
+            // ─── Heartbeat waveform trace ───
+            const waveHistory = [];
+            const WAVE_LEN = 300;
+
+            // ─── Tick counter ───
+            let totalTicks = 0;
             let lastGlobalTick = 0;
 
-            // Animation
+            // ─── Render ───
             let time = 0;
 
-            function animate() {
+            function render() {
                 time++;
 
                 // Global tick detection
-                const globalTickValue = Math.sin(time * 0.05);
-                const globalTickTrigger =
-                    globalTickValue > 0 && lastGlobalTick <= 0;
-                if (globalTickTrigger) {
-                    globalTickCount++;
+                const gv = Math.sin(time * 0.06);
+                if (gv > 0.7 && lastGlobalTick <= 0.7) {
+                    totalTicks++;
+                    document.getElementById("tickCounter").textContent =
+                        totalTicks;
                 }
-                lastGlobalTick = globalTickValue;
+                lastGlobalTick = gv;
 
-                // Clear with slight fade for motion blur
-                ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-                ctx.fillRect(0, 0, width, height);
+                // Clear with subtle trail
+                ctx.fillStyle = "rgba(250,250,248,0.18)";
+                ctx.fillRect(0, 0, W, H);
 
-                // Update all nodes
-                nodes.forEach((node) => {
-                    node.update(time, mouseX, mouseY, nodes, globalTickCount);
-                });
+                // Update + draw connections
+                nodes.forEach((n) => n.update(time));
+                nodes.forEach((n) => n.drawConnections(time));
+                nodes.forEach((n) => n.draw());
 
-                // Draw connections first (behind nodes)
-                nodes.forEach((node) => {
-                    node.drawConnections();
-                });
+                // ─── Heartbeat waveform at bottom (above stats bar) ───
+                // Sample the average tick intensity of all nodes
+                const avgTick =
+                    nodes.reduce((s, n) => s + n.tickPow, 0) / nodes.length;
+                waveHistory.push(avgTick);
+                if (waveHistory.length > WAVE_LEN) waveHistory.shift();
 
-                // Draw nodes on top
-                nodes.forEach((node) => {
-                    node.draw();
-                });
+                // Draw waveform — positioned above the stats bar
+                // Get stats bar height to position waveform just above it
+                const statsEl = document.getElementById("statsBar");
+                const barH = statsEl ? statsEl.offsetHeight : 80;
+                const waveY = H - barH - 12;
+                const waveH = 45;
+                const waveW = W;
 
-                requestAnimationFrame(animate);
+                // Baseline first
+                ctx.beginPath();
+                ctx.moveTo(0, waveY);
+                ctx.lineTo(waveW, waveY);
+                ctx.strokeStyle = "rgba(232,25,44,0.08)";
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+
+                // Waveform line
+                ctx.beginPath();
+                for (let i = 0; i < waveHistory.length; i++) {
+                    const x = (i / WAVE_LEN) * waveW;
+                    const val = waveHistory[i];
+                    const y = waveY - val * waveH;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.strokeStyle = `rgba(232,25,44,${0.3 + avgTick * 0.6})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Fill under waveform
+                ctx.lineTo(
+                    ((waveHistory.length - 1) / WAVE_LEN) * waveW,
+                    waveY,
+                );
+                ctx.lineTo(0, waveY);
+                ctx.closePath();
+                ctx.fillStyle = `rgba(232,25,44,${0.03 + avgTick * 0.08})`;
+                ctx.fill();
+
+                // Bright dot at the leading edge
+                if (waveHistory.length > 1) {
+                    const lastX = ((waveHistory.length - 1) / WAVE_LEN) * waveW;
+                    const lastY =
+                        waveY - waveHistory[waveHistory.length - 1] * waveH;
+                    ctx.beginPath();
+                    ctx.arc(lastX, lastY, 3 + avgTick * 4, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(232,25,44,${0.4 + avgTick * 0.6})`;
+                    ctx.fill();
+                    // Glow
+                    ctx.beginPath();
+                    ctx.arc(lastX, lastY, 8 + avgTick * 10, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(232,25,44,${avgTick * 0.15})`;
+                    ctx.fill();
+                }
+
+                requestAnimationFrame(render);
             }
 
-            // Start after loading
+            window.addEventListener("resize", () => {
+                buildGraph();
+            });
+
+            // Start after loader
             setTimeout(() => {
-                animate();
-            }, 1000);
+                buildGraph();
+                requestAnimationFrame(render);
+            }, 800);
         </script>
     </body>
 </html>

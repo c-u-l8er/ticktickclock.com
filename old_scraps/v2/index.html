@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>TickTickClock — Real-Time Synchronization Platform</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;700;900&family=Courier+Prime:wght@400;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Courier Prime", monospace;
+                background: #ffffff;
+                color: #000000;
+                overflow: hidden;
+                height: 100vh;
+            }
+
+            /* Canvas for 3D visualization */
+            #viz-canvas {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+            }
+
+            /* Content overlay */
+            .overlay {
+                position: relative;
+                z-index: 10;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                padding: clamp(1rem, 4vw, 2rem);
+                pointer-events: none;
+            }
+
+            /* Minimal corner branding */
+            .corner-brand {
+                position: fixed;
+                top: 2rem;
+                left: 2rem;
+                z-index: 10;
+                opacity: 0;
+                animation: fadeIn 1s ease 0.5s forwards;
+            }
+
+            @keyframes fadeIn {
+                to {
+                    opacity: 1;
+                }
+            }
+
+            .brand-mark {
+                font-family: "Montserrat", sans-serif;
+                font-size: 1.5rem;
+                font-weight: 900;
+                letter-spacing: -0.05em;
+                color: #000;
+            }
+
+            .brand-subtitle {
+                font-size: 0.65rem;
+                letter-spacing: 0.3em;
+                text-transform: uppercase;
+                color: #666;
+                margin-top: 0.3rem;
+            }
+
+            /* Main logo - massive */
+            .main-logo {
+                font-family: "Montserrat", sans-serif;
+                font-size: clamp(2.5rem, 12vw, 12rem);
+                font-weight: 900;
+                letter-spacing: -0.05em;
+                line-height: 0.9;
+                text-align: center;
+                margin-bottom: clamp(1rem, 3vw, 2rem);
+                opacity: 0;
+                animation: logoAppear 2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.8s
+                    forwards;
+            }
+
+            @keyframes logoAppear {
+                from {
+                    opacity: 0;
+                    transform: scale(1.2) rotateX(90deg);
+                    filter: blur(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1) rotateX(0deg);
+                    filter: blur(0);
+                }
+            }
+
+            .word {
+                display: block;
+                position: relative;
+            }
+
+            .word-1 {
+                color: #000;
+            }
+            .word-2 {
+                color: #ff0000;
+            }
+            .word-3 {
+                color: #000;
+            }
+
+            /* Description */
+            .description {
+                font-size: clamp(1rem, 2.5vw, 1.5rem);
+                font-weight: 400;
+                text-align: center;
+                max-width: 600px;
+                margin-bottom: 3rem;
+                color: #333;
+                opacity: 0;
+                animation: fadeIn 1s ease 2s forwards;
+            }
+
+            .description strong {
+                font-weight: 700;
+                color: #000;
+            }
+
+            /* CTA */
+            .cta {
+                display: inline-block;
+                padding: 1.5rem 4rem;
+                font-family: "Courier Prime", monospace;
+                font-size: 1rem;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                background: #000;
+                color: #fff;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                pointer-events: all;
+                opacity: 0;
+                animation: fadeIn 1s ease 2.3s forwards;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .cta::before {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                background: #ff0000;
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                transition:
+                    width 0.5s ease,
+                    height 0.5s ease;
+            }
+
+            .cta:hover::before {
+                width: 400px;
+                height: 400px;
+            }
+
+            .cta span {
+                position: relative;
+                z-index: 1;
+            }
+
+            .cta:hover {
+                transform: translateY(-3px);
+            }
+
+            /* Stats footer */
+            .stats-footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                display: flex;
+                justify-content: space-between;
+                padding: 2rem;
+                border-top: 1px solid #e0e0e0;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                z-index: 10;
+                opacity: 0;
+                animation: slideUp 1s ease 2.5s forwards;
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(100%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .stat-block {
+                text-align: center;
+            }
+
+            .stat-value {
+                font-family: "Montserrat", sans-serif;
+                font-size: 2.5rem;
+                font-weight: 900;
+                color: #000;
+                display: block;
+                margin-bottom: 0.3rem;
+            }
+
+            .stat-label {
+                font-size: 0.7rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: #666;
+            }
+
+            /* Time display - top right */
+            .time-display {
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                font-family: "Courier Prime", monospace;
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: #000;
+                z-index: 10;
+                opacity: 0;
+                animation: fadeIn 1s ease 1s forwards;
+            }
+
+            .time-ms {
+                color: #ff0000;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                body {
+                    overflow-y: auto;
+                    height: auto;
+                    min-height: 100vh;
+                }
+
+                .stats-footer {
+                    flex-direction: column;
+                    gap: 1.5rem;
+                    padding: 1.5rem;
+                }
+
+                .corner-brand,
+                .time-display {
+                    display: none;
+                }
+
+                .main-logo {
+                    font-size: clamp(2.25rem, 14vw, 4rem);
+                }
+
+                .description {
+                    font-size: 1rem;
+                    padding: 0 1rem;
+                }
+
+                .cta {
+                    padding: 1.2rem 2.5rem;
+                    font-size: 0.85rem;
+                }
+            }
+
+            @media (max-height: 700px) {
+                body {
+                    overflow-y: auto;
+                    height: auto;
+                    min-height: 100vh;
+                }
+            }
+
+            /* Loading */
+            .loading {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #fff;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                animation: fadeOutLoading 1s ease 1.5s forwards;
+            }
+
+            @keyframes fadeOutLoading {
+                to {
+                    opacity: 0;
+                    pointer-events: none;
+                }
+            }
+
+            .loading-text {
+                font-family: "Montserrat", sans-serif;
+                font-size: 2rem;
+                font-weight: 900;
+                color: #000;
+                animation: loadingPulse 1s ease-in-out infinite;
+            }
+
+            @keyframes loadingPulse {
+                0%,
+                100% {
+                    opacity: 0.3;
+                }
+                50% {
+                    opacity: 1;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Loading -->
+        <div class="loading">
+            <div class="loading-text">SYNCING...</div>
+        </div>
+
+        <!-- Canvas -->
+        <canvas id="viz-canvas"></canvas>
+
+        <!-- Corner branding -->
+        <div class="corner-brand">
+            <div class="brand-mark">TTC</div>
+            <div class="brand-subtitle">Platform</div>
+        </div>
+
+        <!-- Time display -->
+        <div class="time-display">
+            <span id="time-hours">00</span>:<span id="time-minutes">00</span
+            >:<span id="time-seconds">00</span>.<span
+                class="time-ms"
+                id="time-ms"
+                >000</span
+            >
+        </div>
+
+        <!-- Main content -->
+        <div class="overlay">
+            <h1 class="main-logo">
+                <span class="word word-1">TICK</span>
+                <span class="word word-2">TICK</span>
+                <span class="word word-3">CLOCK</span>
+            </h1>
+
+            <p class="description">
+                <strong>Sub-10ms precision</strong> synchronization for digital
+                twin infrastructure. Built for manufacturing, healthcare, and
+                aerospace.
+            </p>
+
+            <a
+                href="https://app.fleetprompt.com/marketplace?q=TickTickClock"
+                class="cta"
+            >
+                <span>Discover on FleetPrompt</span>
+            </a>
+        </div>
+
+        <div
+            style="
+                z-index: 999;
+                position: fixed;
+                bottom: 1em;
+                width: 100%;
+                text-align: center;
+            "
+        >
+            &copy; <span id="currentYear"></span> TickTickClock.com ... Powered
+            by <a href="https://ampersandboxdesign.com">[&]</a>
+        </div>
+
+        <script>
+            // Set current year dynamically
+            document.getElementById("currentYear").textContent =
+                new Date().getFullYear();
+
+            // Canvas setup
+            const canvas = document.getElementById("viz-canvas");
+            const ctx = canvas.getContext("2d");
+            let width, height;
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener("resize", resize);
+
+            // Mouse tracking
+            let mouseX = width / 2;
+            let mouseY = height / 2;
+
+            document.addEventListener("mousemove", (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            // Time display
+            function updateTime() {
+                const now = new Date();
+                document.getElementById("time-hours").textContent = String(
+                    now.getHours(),
+                ).padStart(2, "0");
+                document.getElementById("time-minutes").textContent = String(
+                    now.getMinutes(),
+                ).padStart(2, "0");
+                document.getElementById("time-seconds").textContent = String(
+                    now.getSeconds(),
+                ).padStart(2, "0");
+                document.getElementById("time-ms").textContent = String(
+                    now.getMilliseconds(),
+                ).padStart(3, "0");
+            }
+            setInterval(updateTime, 10);
+
+            // Node in a geometric graph network
+            class GraphNode {
+                constructor(x, y, index) {
+                    this.x = x;
+                    this.y = y;
+                    this.index = index;
+                    this.baseX = x;
+                    this.baseY = y;
+                    this.vx = 0;
+                    this.vy = 0;
+                    this.radius = 4;
+                    this.targetRadius = 4;
+                    this.connections = [];
+                    this.activity = Math.random();
+                    this.phase = Math.random() * Math.PI * 2;
+                    this.color = "#000000";
+                    this.energy = 0;
+                    this.tickPhase = index * 0.05; // Stagger tick timing
+                    this.lastTickState = 0;
+                    this.tickIntensity = 0;
+                }
+
+                update(time, mouseX, mouseY, allNodes, globalTick) {
+                    // Calculate distance to mouse
+                    const dx = mouseX - this.x;
+                    const dy = mouseY - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // Mouse repulsion with tick enhancement
+                    if (distance < 250) {
+                        const force = (1 - distance / 250) * 4;
+                        const angle = Math.atan2(dy, dx);
+
+                        // Add tick impulse to mouse force
+                        const tickForce = force * (1 + this.tickIntensity * 2);
+                        this.vx -= Math.cos(angle) * tickForce;
+                        this.vy -= Math.sin(angle) * tickForce;
+                        this.energy = Math.min(1, this.energy + 0.15);
+                    } else {
+                        this.energy *= 0.92;
+                    }
+
+                    // TICK behavior - synchronized sharp pulses
+                    const tickValue = Math.sin(time * 0.05 + this.tickPhase);
+                    const tickTrigger =
+                        tickValue > 0 && this.lastTickState <= 0; // Rising edge detection
+
+                    if (tickTrigger) {
+                        // Sharp tick impulse
+                        this.tickIntensity = 1;
+
+                        // Snap position with tick
+                        const tickAngle = (time + this.index) * 0.3;
+                        const tickMagnitude = 15 + this.energy * 20;
+                        this.vx += Math.cos(tickAngle) * tickMagnitude;
+                        this.vy += Math.sin(tickAngle) * tickMagnitude;
+
+                        // Activity spike on tick
+                        this.activity = 1;
+                    } else {
+                        // Decay tick intensity
+                        this.tickIntensity *= 0.85;
+                        this.activity *= 0.95;
+                    }
+
+                    this.lastTickState = tickValue;
+
+                    // Spring back to base position (stronger during tick)
+                    const springStrength = 0.015 + this.tickIntensity * 0.03;
+                    this.vx += (this.baseX - this.x) * springStrength;
+                    this.vy += (this.baseY - this.y) * springStrength;
+
+                    // Apply velocity with damping
+                    const damping = 0.88 - this.tickIntensity * 0.1; // Less damping during tick
+                    this.vx *= damping;
+                    this.vy *= damping;
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    // Dynamic radius - snaps larger on tick
+                    const tickRadiusBoost = this.tickIntensity * 5;
+                    this.targetRadius =
+                        3 +
+                        this.activity * 2 +
+                        this.energy * 6 +
+                        tickRadiusBoost;
+                    this.radius += (this.targetRadius - this.radius) * 0.3;
+
+                    // Color based on energy and tick
+                    const r = Math.floor(
+                        (this.energy + this.tickIntensity * 0.3) * 255,
+                    );
+                    this.color = `rgb(${r}, 0, 0)`;
+                }
+
+                draw() {
+                    // Enhanced glow during tick
+                    const glowIntensity = Math.max(
+                        this.energy,
+                        this.tickIntensity * 0.8,
+                    );
+                    if (glowIntensity > 0.1 || this.activity > 0.7) {
+                        const gradient = ctx.createRadialGradient(
+                            this.x,
+                            this.y,
+                            0,
+                            this.x,
+                            this.y,
+                            this.radius * 4,
+                        );
+                        const glowColor =
+                            this.tickIntensity > 0.5
+                                ? `rgba(255, 0, 0, ${glowIntensity * 0.6})`
+                                : `rgba(0, 0, 0, ${this.activity * 0.3})`;
+                        gradient.addColorStop(0, glowColor);
+                        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+                        ctx.fillStyle = gradient;
+                        ctx.beginPath();
+                        ctx.arc(
+                            this.x,
+                            this.y,
+                            this.radius * 4,
+                            0,
+                            Math.PI * 2,
+                        );
+                        ctx.fill();
+                    }
+
+                    // Node body
+                    ctx.fillStyle =
+                        this.energy > 0.3 || this.tickIntensity > 0.3
+                            ? this.color
+                            : "#000000";
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Node outline - thicker during tick
+                    const outlineWidth = 1 + this.tickIntensity * 2;
+                    ctx.strokeStyle =
+                        this.energy > 0.5 || this.tickIntensity > 0.5
+                            ? "#ff0000"
+                            : "rgba(0, 0, 0, 0.3)";
+                    ctx.lineWidth = outlineWidth;
+                    ctx.stroke();
+
+                    // Tick indicator ring
+                    if (this.tickIntensity > 0.2) {
+                        ctx.strokeStyle = `rgba(255, 0, 0, ${this.tickIntensity * 0.6})`;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(
+                            this.x,
+                            this.y,
+                            this.radius + 3 + this.tickIntensity * 5,
+                            0,
+                            Math.PI * 2,
+                        );
+                        ctx.stroke();
+                    }
+                }
+
+                drawConnections() {
+                    this.connections.forEach((other) => {
+                        const dx = other.x - this.x;
+                        const dy = other.y - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        // Connection strength influenced by both nodes' tick states
+                        const tickStrength = Math.max(
+                            this.tickIntensity,
+                            other.tickIntensity,
+                        );
+                        const activityLevel =
+                            (this.activity + other.activity) / 2;
+                        const energyLevel = Math.max(this.energy, other.energy);
+                        const baseOpacity = Math.max(0.05, activityLevel * 0.3);
+                        const opacity =
+                            baseOpacity +
+                            energyLevel * 0.6 +
+                            tickStrength * 0.4;
+
+                        // Line color - red if energized or ticking, black otherwise
+                        const lineColor =
+                            energyLevel > 0.3 || tickStrength > 0.3
+                                ? `rgba(255, 0, 0, ${opacity})`
+                                : `rgba(0, 0, 0, ${opacity})`;
+
+                        const lineWidth =
+                            1 + tickStrength * 2 + energyLevel * 1;
+                        ctx.strokeStyle = lineColor;
+                        ctx.lineWidth = lineWidth;
+                        ctx.beginPath();
+                        ctx.moveTo(this.x, this.y);
+                        ctx.lineTo(other.x, other.y);
+                        ctx.stroke();
+
+                        // Animated pulse along connection - faster during tick
+                        if (
+                            (energyLevel > 0.5 && activityLevel > 0.6) ||
+                            tickStrength > 0.5
+                        ) {
+                            const pulseSpeed = 0.05 + tickStrength * 0.1;
+                            const pulsePos = (time * pulseSpeed) % 1;
+                            const pulseX = this.x + dx * pulsePos;
+                            const pulseY = this.y + dy * pulsePos;
+
+                            const pulseSize = 2 + tickStrength * 3;
+                            ctx.fillStyle =
+                                tickStrength > 0.3
+                                    ? "rgba(255, 0, 0, 1)"
+                                    : "rgba(255, 0, 0, 0.8)";
+                            ctx.beginPath();
+                            ctx.arc(pulseX, pulseY, pulseSize, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    });
+                }
+            }
+
+            // Create geometric graph network
+            const nodes = [];
+            const nodeCount = 80;
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            // Calculate maximum radius to reach screen edges (with some padding)
+            const maxRadius = Math.min(width, height) / 2 - 50;
+
+            // Create nodes in geometric patterns
+            // Outer circle pattern - extends to screen edges
+            for (let i = 0; i < 30; i++) {
+                const angle = (i / 30) * Math.PI * 2;
+                const radius =
+                    maxRadius * 0.85 + Math.random() * (maxRadius * 0.15);
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                nodes.push(new GraphNode(x, y, i));
+            }
+
+            // Inner circle - scaled proportionally
+            for (let i = 0; i < 20; i++) {
+                const angle = (i / 20) * Math.PI * 2 + 0.5;
+                const radius =
+                    maxRadius * 0.35 + Math.random() * (maxRadius * 0.2);
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                nodes.push(new GraphNode(x, y, 30 + i));
+            }
+
+            // Random scattered nodes - fill the space
+            for (let i = 0; i < 30; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * maxRadius * 0.9;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                nodes.push(new GraphNode(x, y, 50 + i));
+            }
+
+            // Create connections (geometric graph structure)
+            nodes.forEach((node, i) => {
+                // Connect to nearest neighbors
+                const distances = nodes
+                    .map((other, j) => ({
+                        node: other,
+                        distance: Math.sqrt(
+                            (node.baseX - other.baseX) ** 2 +
+                                (node.baseY - other.baseY) ** 2,
+                        ),
+                        index: j,
+                    }))
+                    .filter((d) => d.index !== i)
+                    .sort((a, b) => a.distance - b.distance);
+
+                // Connect to 3-6 nearest neighbors
+                const connectionCount = 3 + Math.floor(Math.random() * 3);
+                for (
+                    let j = 0;
+                    j < Math.min(connectionCount, distances.length);
+                    j++
+                ) {
+                    if (!node.connections.includes(distances[j].node)) {
+                        node.connections.push(distances[j].node);
+                    }
+                }
+            });
+
+            // Add some random long-range connections for complexity
+            for (let i = 0; i < 25; i++) {
+                const node1 = nodes[Math.floor(Math.random() * nodes.length)];
+                const node2 = nodes[Math.floor(Math.random() * nodes.length)];
+                if (node1 !== node2 && !node1.connections.includes(node2)) {
+                    node1.connections.push(node2);
+                }
+            }
+
+            // Global tick counter for audio-like display
+            let globalTickCount = 0;
+            let lastGlobalTick = 0;
+
+            // Animation
+            let time = 0;
+
+            function animate() {
+                time++;
+
+                // Global tick detection
+                const globalTickValue = Math.sin(time * 0.05);
+                const globalTickTrigger =
+                    globalTickValue > 0 && lastGlobalTick <= 0;
+                if (globalTickTrigger) {
+                    globalTickCount++;
+                }
+                lastGlobalTick = globalTickValue;
+
+                // Clear with slight fade for motion blur
+                ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+                ctx.fillRect(0, 0, width, height);
+
+                // Update all nodes
+                nodes.forEach((node) => {
+                    node.update(time, mouseX, mouseY, nodes, globalTickCount);
+                });
+
+                // Draw connections first (behind nodes)
+                nodes.forEach((node) => {
+                    node.drawConnections();
+                });
+
+                // Draw nodes on top
+                nodes.forEach((node) => {
+                    node.draw();
+                });
+
+                requestAnimationFrame(animate);
+            }
+
+            // Start after loading
+            setTimeout(() => {
+                animate();
+            }, 1000);
+        </script>
+    </body>
+</html>
