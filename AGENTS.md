@@ -32,4 +32,4 @@ TickTickClock is the temporal intelligence layer for the [&] Protocol ecosystem.
 
 ## Status
 
-Spec complete. Implementation pending. See `project_spec/README.md`.
+Spec complete. Implementation pending. See `docs/spec/README.md`.

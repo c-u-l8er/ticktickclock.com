@@ -4,7 +4,7 @@ Time-series continual learning engine. The `&time` primitive provider for the [&
 
 ## Source-of-truth spec
 
-- `project_spec/README.md` — TickTickClock technical specification
+- `docs/spec/README.md` — TickTickClock technical specification
 
 ## [&] Capabilities provided
 
