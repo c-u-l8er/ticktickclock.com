@@ -504,6 +504,53 @@ TickTickClock implements three [&] Protocol capability contracts:
 
 ---
 
+## 7.1 PULSE Loop Manifest
+
+TickTickClock is a **PULSE-conforming loop** under OS-010 with two distinguishing characteristics: it is one of the few [&] loops whose canonical cadence is `streaming` (continuous tick ingestion), and it serves as the **canonical PULSE substrate for `time`** — other loops reference `ticktickclock://workspace/{ws_id}` in the `time` slot of their substrates block.
+
+**Loop ID:** `ticktickclock.temporal_intelligence`
+**Loop name:** TickTickClock Temporal Intelligence Loop
+**Version:** 0.1.0
+**Owner:** ticktickclock.com
+**Workspace scope:** required
+
+**Phases (5 canonical kinds — multi-timescale consolidation maps directly to PULSE):**
+
+| Phase ID | Kind | Description |
+|---|---|---|
+| `retrieve_window` | `retrieve` | Pull stream window (raw ticks + cached features) for the active query/subscription |
+| `route_inference` | `route` | Decide between fast detector (Mamba SSM) and slow forecaster based on horizon and confidence budget |
+| `act_publish` | `act` | Emit detected anomalies, forecasts, and patterns; commit feature deltas to CRDT |
+| `learn_outcome` | `learn` | Update detector confidence from human/automated feedback (`feedback_immutability`) |
+| `consolidate_epoch` | `consolidate` | Multi-timescale consolidation (Titans-inspired): roll fast → medium → slow → glacial |
+
+**Closure:** `consolidate_epoch → retrieve_window` via epoch-aware delta-CRDT, guarantee `next_tick`.
+
+**Cadence:**
+- Primary: `streaming` (params: `tick_source`, `window_ms`)
+- Fallback: `periodic` (consolidation epochs)
+
+**Nesting:** root loop. May be invoked as an inner loop by `geofleetic.spatial_intelligence` for spatiotemporal incident detection.
+
+**Substrates:**
+- `memory`: `graphonomous://workspace/{ws_id}`
+- `policy`: `delegatic://workspace/{ws_id}`
+- `audit`: `delegatic://workspace/{ws_id}/audit`
+- `auth`: `open_sentience://workspace/{ws_id}`
+- `transport`: `mcp`
+- `time`: **self** (`ticktickclock://workspace/{ws_id}` — TickTickClock is the canonical time substrate for the entire ecosystem)
+
+**Invariants enabled:** `phase_atomicity`, `feedback_immutability`, `append_only_audit`, `outcome_grounding`, `trace_id_propagation`. `kappa_routing` and `quorum_before_commit` are not used (routing is horizon-based, not topology-based; commits are CRDT-converged, not quorum-validated).
+
+**Cross-loop connections:**
+- `anomaly_to_attention` — emits `OutcomeSignal` (anomaly detected) from `act_publish` to attention engines on subscribing loops
+- `consolidation_to_prism` — emits `ConsolidationEvent` from `consolidate_epoch` to `prism.benchmark.observe`
+- `forecast_to_geofleetic` — emits `TopologyContext` (temporal-spatial overlay) when paired with GeoFleetic
+
+**Why this matters:** TickTickClock is the only loop in the portfolio that can declare itself as the `time` substrate. PULSE's six-slot substrate model makes this referenceable — any other loop that wants epoch-aware time coordinates simply names TickTickClock in its manifest.
+
+---
+
 ## 8. MCP Tools
 
 All tools are exposed via `hermes_mcp` and follow the MCP tool calling convention.
