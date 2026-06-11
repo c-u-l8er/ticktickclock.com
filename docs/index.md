@@ -2,6 +2,8 @@
 
 > **Every tick is a learning opportunity. Every pattern has a rhythm. Temporal intelligence that never forgets.**
 
+> **Part of the [&] Protocol stack** · [Ecosystem overview](../../ECOSYSTEM.md) · [Three-protocol stack](../../PULSE/docs/THREE_PROTOCOL_STACK.md) · [Stack status](../../STACK_COMPLETION.md)
+
 Welcome to the documentation hub for **TickTickClock** — the temporal intelligence
 layer for the [&] Protocol ecosystem. TickTickClock provides time-series anomaly
 detection, forecasting, and pattern recognition as continual learning services.
