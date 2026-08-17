@@ -1,18 +1,21 @@
 {
   "schema": "computedriven-build-v1",
   "_comment": "Written by build-site.mjs at the end of a successful emit and read by launch-gate.mjs. `inputs` proves the artifact is not stale — a build that threw leaves a previous index.html on disk and the gate would otherwise approve it. `artifacts` proves the emitted bytes have not been hand-edited since. Both directions are needed; either alone has a hole.",
-  "built_at": "2026-08-17T17:14:02.263Z",
+  "built_at": "2026-08-17T18:11:10.602Z",
   "stamp": "TICKTICKCLOCK v0.1.0 · RECORDS 2026-08-17",
   "environment": {
     "upstream_contracts_checked": 3,
-    "pulse_manifest_files": 0
+    "pulse_manifest_files": 0,
+    "amp_nav_sha256": "ba1eb539ebe6951df41488f5805113c824e4ef565b23612c9cd3f2e1f1f5d4b9",
+    "amp_nav_bytes": 51428,
+    "amp_nav_has_renderPlacement": false
   },
   "inputs": {
     "package.json": "351a872aec2d4e8364df99e9fdaaa43ce14b9f35532f81c281f9b12bdfcb65fd",
-    "records/surface.json": "3b24509a464f10f76ae0e6a2039bb2ab365842be1c832f431c0b7cafd6cfe969",
+    "records/surface.json": "d94bc6c1e377a663c5d09dab716d954ed3d528d61e4d7d647812f65b076f5c42",
     "records/spec-facts.json": "684f3c6e4d5f19e453ef219831296f69c1501a952829ed2be5c4bd69a18fc8e7",
     "src/shell.css": "ea060a26e502457c11842281513f00f03d3d9fe7ad91eee5b2acd568ec2a4ab8",
-    "src/landing.html": "658cf159a3057e03d26c48e64cf57a094132b3e02c3702b1b2bbbbfba6edf6ca",
+    "src/landing.html": "770df7c83b1fe85c16410ee5e84ad20684286ee748d8f6e66e27ca2e0189c299",
     "src/phases.js": "265e227c7e50cb234efd40a7b97d397be6123567c04909da21f53fc8f7daf1f9",
     "src/say.js": "1350a852dd673154b7030971f54286a8faa208ebf8a1dac16da427c83dd3109c",
     "docs/spec/README.md": "7a17acdb2487ac8f15c36a64f596e1a90401a92b3cd8fa55c24333863ac0ca0f",
@@ -22,8 +25,8 @@
   },
   "artifacts": {
     "index.html": {
-      "sha256": "554e73103b03093db17385d25806812283430305b16ad89a703544bee982ff56",
-      "bytes": 37737
+      "sha256": "ff432a2add72c0d9967e46f0ff4a833e1f5f4cbd9d47983e49fbc4dde2dce27a",
+      "bytes": 38627
     },
     "phases.js": {
       "sha256": "d91b9bf4133dbb67c5e179bbfbabea3e912c6ec3fd31b575b7c7c28a4f81f1af",
