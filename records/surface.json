@@ -1,0 +1,198 @@
+{
+  "schema": "computedriven-surface-v1",
+  "_comment": "The frozen record this landing page is GENERATED from. Nothing on the emitted page may state a rung, a status or a count that is not derived here or recomputed by build-site.mjs from the specification and the contract files themselves. launch-gate.mjs reads the emitted index.html and refuses to publish when the two disagree.",
+
+  "shell_revision": "shell-r9",
+  "version": "0.1.0",
+  "origin": "https://ticktickclock.com",
+  "repo": "https://github.com/c-u-l8er/ticktickclock.com",
+  "surface": "TickTickClock",
+  "layer": "temporal",
+  "parent": "ComputeDriven",
+
+  "tier": 3,
+  "_tier_comment": "READ THE NAV, NOT THE TEMPLATE. ampersand-nav/src/amp-nav.js records ticktickclock as { place: 3, rung: 'spec' } at line 688, and its own renderPlacement() emits the layer sentence for place 2 ONLY — place 3 gets 'a specification in the ComputeDriven world' plus a link to the spec, and place 4 gets attribution only. Three variants, not two. Writing a layer sentence here would put the band in direct contradiction with the nav rendered immediately beneath it. Checked 2026-08-17 by reading amp-nav.js; the nav source is lane N's and was NOT edited.",
+  "_nav_rung_agreement": "amp-nav records rung 'spec' for this property. This surface independently measures 'spec' — there is no implementation code in this repository or any other, and the only artifacts are documents. Nav and measurement agree, so there is nothing to print as a divergence.",
+
+  "question": "Can a monitor learn from every tick and still remember last season?",
+  "spec_file": "docs/spec/README.md",
+  "spec_url": "https://docs.ampersandboxdesign.com/ticktickclock.com/docs/spec/README.md",
+
+  "surface_rung": "spec",
+  "rung_witness": "spec_document_check",
+  "_rung_witness_comment": "SHELL.md r5. A blanket 'any pending gate blocks the rung' rule cannot work here: independent_implementation is pending forever by construction. This names the ONE gate that witnesses the rung — the document exists, is internally consistent, and every section number this page cites resolves in it — and launch-gate.mjs refuses if that named gate is not approved with its evidence.",
+  "surface_rung_covers": "one document — the v0.1 draft at docs/spec/README.md — and the three capability contracts it declares. No implementation exists anywhere: no mix project, no MCP server, no stream",
+  "verified_at": "2026-08-17",
+
+  "nav_stack_px": 800,
+  "_nav_stack_comment": "SHELL.md r6: the stacking breakpoint belongs to the surface, not the shell. r5 gave 430px, measured on a four-item nav; the bendrune lane measured 780px on six. Measured on this nav and recorded here; launch-gate.mjs checks the stylesheet against this number.",
+
+  "status": {
+    "statement": "A draft specification and three machine-readable capability contracts. The contracts were re-read from disk during this build and every operation they declare was matched against the operation tables in the spec; the spec's own structure, including its performance table, was recounted from the file.",
+    "source": "build-site.mjs on 2026-08-17: it parses docs/spec/README.md with fenced code blocks stripped, counts its numbered headings, its task boxes, its acceptance criteria and its performance rows, and compares the operation tables in §6 against records/contracts/*.contract.json — which are byte-identical copies of the files in AmpersandBoxDesign/contracts/v0.1.0/, checked by SHA-256 on every build run in the portfolio tree.",
+    "limit": "This establishes that a document exists and that it does not contradict the contract files beside it. It does not establish that any of it works. The nine figures in §10 are targets, not measurements — nothing has been compiled, so no tick has ever been processed, no anomaly detected and no forecast made. The catastrophic-forgetting claim, the sub-millisecond detection latency and the hundred thousand concurrent streams are design intentions written down. The spec's own Pre-Phase exists precisely because those assumptions are unvalidated, and it has not been started."
+  },
+
+  "advance": {
+    "next_rung": "in_tree",
+    "requires": "A mix project in this repository whose test suite runs. The nearest honest step is the spec's own FV-2 — four GenServers ticking at different intervals with events promoting from the fast tier to the slow one — because it needs no model, no ONNX and no dataset, and it is the assumption the whole multi-timescale argument rests on. One feasibility validation with a result would move this rung; a hundred more pages of specification would not."
+  },
+
+  "artifacts": [
+    {
+      "id": "spec",
+      "name": "The v0.1 draft specification",
+      "where": "docs/spec/README.md",
+      "rung": "spec",
+      "detail": "Fourteen numbered sections covering an adaptive state-space anomaly engine, a multi-timescale forecast engine, a pattern engine over Matrix Profile, epoch-aware delta-CRDT replication, an Ecto data model, a 30-week roadmap and five architecture decision records. It is a design document with Elixir type declarations in it, not Elixir.",
+      "witness": "The file, re-read and recounted by this build. Every § number cited on this page was resolved against its real headings, with fenced code blocks stripped first."
+    },
+    {
+      "id": "contracts",
+      "name": "Three &time capability contracts",
+      "where": "records/contracts/",
+      "rung": "spec",
+      "detail": "&time.anomaly, &time.forecast and &time.pattern as JSON: named operations with typed input and output slots, whether each is deterministic and whether it has side effects, and the primitives they accept from and feed into. A declaration a client could be written against — not a service a client can call.",
+      "witness": "Byte-identical copies of AmpersandBoxDesign/contracts/v0.1.0/, compared by SHA-256 during this build. Every operation they name was matched against the tables in §6 of the spec."
+    },
+    {
+      "id": "pulse",
+      "name": "The PULSE loop manifest",
+      "where": "docs/spec/ §7.1",
+      "rung": "spec",
+      "detail": "A five-phase loop — retrieve_window, route_inference, act_publish, learn_outcome, consolidate_epoch — declared in prose, with its closure, cadence, substrates and cross-loop signals. This is the surface that corresponds most directly to PULSE, the temporal algebra: every phase maps to one of PULSE's five canonical kinds.",
+      "witness": "Extracted from the spec by this build. It is prose in a Markdown table: no ticktickclock.temporal_intelligence.pulse.json exists in PULSE/manifests/, so nothing can validate it against the PULSE v0.1 schema."
+    }
+  ],
+
+  "unmeasured": [
+    {
+      "id": "fv1_ssm",
+      "name": "FV-1 — a state-space model that runs without EXLA",
+      "rung": "spec",
+      "detail": "Load a Mamba-style selective state-space model through Bumblebee and ONNX, run a synthetic stream through it, and measure per-tick latency and resident memory. The spec carries its own fallback — an exponential moving average with a Z-score — which is an admission that the headline architecture might not be reachable here at all.",
+      "needs": "A model that exists in ONNX form, and a machine to time it on.",
+      "built": "no"
+    },
+    {
+      "id": "fv2_timescales",
+      "name": "FV-2 — multi-timescale consolidation as ticking GenServers",
+      "rung": "spec",
+      "detail": "Four supervised processes ticking at four intervals, with events promoting from the fast tier to the medium and slow ones, under sustained load. No forgetting is the claim the whole product is named for, and this is the smallest experiment that could contradict it.",
+      "needs": "A mix project and a few hundred lines of Elixir. No model, no dataset, no GPU.",
+      "built": "no"
+    },
+    {
+      "id": "fv3_crdt",
+      "name": "FV-3 — delta-CRDT convergence for temporal state",
+      "rung": "spec",
+      "detail": "Five nodes, a partition during active detection, and a check that the anomaly history converges with no phantom detections and none lost. The same experiment GeoFleetic needs for spatial twins, which is either an efficiency or a shared single point of failure.",
+      "needs": "A cluster of five BEAM nodes, which is a laptop.",
+      "built": "no"
+    },
+    {
+      "id": "targets",
+      "name": "§10 — nine performance targets, none measured",
+      "rung": "spec",
+      "detail": "Sub-millisecond detection per tick, fifty-millisecond forecasts, a hundred thousand concurrent streams on one node, zero temporal forgetting by design. Every one is a target in a table in an unimplemented specification. This page used to print three of them as if they were readings from something running.",
+      "needs": "Something to measure. That is the whole of it.",
+      "built": "no"
+    },
+    {
+      "id": "impl",
+      "name": "Any implementation at all",
+      "rung": "spec",
+      "detail": "No mix project, no supervision tree, no MCP server, no TimescaleDB migration. The eight MCP tools named in §8 do not exist as code anywhere; the eight names are the whole of them.",
+      "needs": "Phase 0 of the roadmap, which is scheduled after a Pre-Phase that has not begun.",
+      "built": "no"
+    }
+  ],
+
+  "zero_counts": [
+    {
+      "label": "Lines of TickTickClock implementation code",
+      "value": "0",
+      "unit": "lines",
+      "witness": "There is no mix.exs, no lib/, no .ex and no .exs in this repository outside old_scraps/, and no TickTickClock code in any other repository in the portfolio. Recounted by this build."
+    },
+    {
+      "label": "Ticks ever ingested",
+      "value": "0",
+      "unit": "ticks",
+      "witness": "No stream process has ever been started, because no code exists to start one. The counter that used to stand on this page and read zero was not measuring anything; it was a zero drawn next to a label."
+    },
+    {
+      "label": "Performance targets measured",
+      "value": "0",
+      "unit": "measured",
+      "witness": "§10 declares nine of them. This build counts the rows in that table and the number of them with a witness, and the second number is zero."
+    }
+  ],
+
+  "contact": {
+    "kind": "formspree",
+    "endpoint": "https://formspree.io/f/xaewoadr",
+    "url": "https://github.com/c-u-l8er/ticktickclock.com/issues",
+    "_comment": "Ruled by Travis 2026-08-17: this is computedriven.com's Formspree endpoint and the portfolio shares it. SHELL.md r9. Deliberately not a mailto: — Travis's call, 2026-08-11 — and launch-gate.mjs refuses any page carrying one. The GitHub issues URL stays as the public, linkable channel for anyone who would rather argue where others can read it."
+  },
+
+  "gates": {
+    "_comment": "A gate may not read approved without its evidence, reviewer and date fields, and launch-gate.mjs enforces that.",
+    "spec_document_check": {
+      "label": "The specification exists, is internally consistent, and every § this page cites resolves in it",
+      "status": "approved",
+      "description": "The witness for the spec rung. build-site.mjs re-reads docs/spec/README.md, strips fenced code blocks, extracts every numbered heading, and launch-gate.mjs then requires every § citation in the emitted page to resolve against that set. The operation tables in §6 are matched against the contract files.",
+      "evidence": "1013 lines, 14 numbered top-level sections, 37 numbered headings, no section number used twice; 10 contract operations across 3 capabilities, all matching records/contracts/*.contract.json; 0 dangling § citations on the emitted page.",
+      "reviewer": "build-site.mjs and launch-gate.mjs in this repository",
+      "date": "2026-08-17"
+    },
+    "contract_agreement": {
+      "label": "The operation tables in §6 and the contract JSON declare the same operations",
+      "status": "approved",
+      "description": "Each of &time.anomaly, &time.forecast and &time.pattern is declared twice — once as a Markdown table in the spec, once as a JSON contract file in AmpersandBoxDesign. Two hand-maintained copies of one list drift. This build compares them and refuses on any difference in either direction.",
+      "evidence": "detect/enrich/learn, predict/explain/enrich/learn, detect/summarize/enrich — 10 operations, no additions and no omissions on either side.",
+      "reviewer": "build-site.mjs, comparing records/contracts/ against docs/spec/README.md §6",
+      "date": "2026-08-17"
+    },
+    "feasibility_validation": {
+      "label": "Pre-Phase FV-1 … FV-4 have been run and have results",
+      "status": "pending",
+      "description": "The spec makes the case itself: these are the highest-risk assumptions and they are to be validated before the implementation is committed to. None has been started.",
+      "evidence": null,
+      "reviewer": null,
+      "date": null
+    },
+    "performance_targets": {
+      "label": "Any figure in §10 has been measured on something running",
+      "status": "pending",
+      "description": "Nine targets, zero measurements. Three of them were published on this page as statistics until this revision.",
+      "evidence": null,
+      "reviewer": null,
+      "date": null
+    },
+    "implementation": {
+      "label": "A mix project exists whose test suite runs",
+      "status": "pending",
+      "description": "The condition for the in_tree rung. Phase 0 of the roadmap.",
+      "evidence": null,
+      "reviewer": null,
+      "date": null
+    },
+    "independent_implementation": {
+      "label": "Someone who is not us implements &time.anomaly against this contract",
+      "status": "pending",
+      "description": "The condition for the external rung. Pending by construction, and it does not block the rung this surface claims — SHELL.md r5, rung_witness.",
+      "evidence": null,
+      "reviewer": null,
+      "date": null
+    },
+    "pulse_manifest_file": {
+      "label": "The PULSE loop manifest exists as a file that validates against the schema",
+      "status": "pending",
+      "description": "§7.1 declares a PULSE-conforming loop in prose. PULSE/manifests/ holds manifests for graphonomous, prism, agentromatic and the two embodiment loops — not this one, which is awkward for the surface that corresponds most directly to the temporal algebra. Until the manifest is a file, PULSE/schemas/pulse-loop-manifest.v0.1.json cannot be run against it.",
+      "evidence": null,
+      "reviewer": null,
+      "date": null
+    }
+  }
+}

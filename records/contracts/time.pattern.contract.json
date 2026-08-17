@@ -1,0 +1,50 @@
+{
+  "$schema": "https://protocol.ampersandboxdesign.com/schema/v0.1.0/capability-contract.schema.json",
+  "capability": "&time.pattern",
+  "provider": "ticktickclock",
+  "version": "0.1.0",
+  "description": "Temporal pattern contract for detecting recurring behaviors, summarizing seasonality, and enriching downstream decisions with trend-cycle context.",
+  "operations": {
+    "detect": {
+      "in": "time_series",
+      "out": "pattern_set",
+      "description": "Detect recurring temporal structures such as cycles, seasonality, and repeated signal motifs from historical or streaming data.",
+      "deterministic": false,
+      "side_effects": false
+    },
+    "summarize": {
+      "in": "pattern_set",
+      "out": "pattern_summary",
+      "description": "Summarize detected patterns into interpretable temporal structure, recurrence, and significance signals.",
+      "deterministic": false,
+      "side_effects": false
+    },
+    "enrich": {
+      "in": "context",
+      "out": "enriched_context",
+      "description": "Attach recurring-pattern and seasonality context to an existing decision, routing, or analytical payload.",
+      "deterministic": false,
+      "side_effects": false
+    }
+  },
+  "accepts_from": [
+    "&memory.*",
+    "&space.*",
+    "raw_data",
+    "time_series",
+    "context"
+  ],
+  "feeds_into": ["&reason.*", "&memory.*", "&space.*", "output"],
+  "a2a_skills": ["temporal-pattern-detection", "seasonality-analysis"],
+  "metadata": {
+    "primitive": "time",
+    "subtype": "pattern",
+    "recommended_windows": ["24h", "7d", "30d"],
+    "example_use_cases": [
+      "support ticket seasonality analysis",
+      "research trend cycle detection",
+      "recurring incident pattern detection",
+      "demand rhythm characterization"
+    ]
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://protocol.ampersandboxdesign.com/schema/v0.1.0/capability-contract.schema.json",
+  "capability": "&time.anomaly",
+  "provider": "ticktickclock",
+  "version": "0.1.0",
+  "description": "Temporal anomaly detection contract for surfacing unusual behavior in streaming or historical signals and enriching downstream decision context.",
+  "operations": {
+    "detect": {
+      "in": "stream_data",
+      "out": "anomaly_set",
+      "description": "Detect anomalous events, spikes, drops, or drift from temporal input signals.",
+      "deterministic": false,
+      "side_effects": false
+    },
+    "enrich": {
+      "in": "context",
+      "out": "enriched_context",
+      "description": "Attach anomaly-derived temporal context to an existing payload for downstream reasoning or routing.",
+      "deterministic": false,
+      "side_effects": false
+    },
+    "learn": {
+      "in": "observation",
+      "out": "ack",
+      "description": "Incorporate confirmed outcomes or operator feedback to improve later anomaly detection behavior.",
+      "deterministic": false,
+      "side_effects": true
+    }
+  },
+  "accepts_from": [
+    "&memory.*",
+    "&space.*",
+    "raw_data",
+    "stream_data",
+    "context",
+    "observation"
+  ],
+  "feeds_into": [
+    "&memory.*",
+    "&reason.*",
+    "&space.*",
+    "output"
+  ],
+  "a2a_skills": [
+    "temporal-anomaly-detection"
+  ],
+  "metadata": {
+    "primitive": "time",
+    "subtype": "anomaly",
+    "recommended_streams": [
+      "cpu",
+      "mem",
+      "latency",
+      "error_rate",
+      "throughput"
+    ],
+    "example_use_cases": [
+      "infrastructure incident detection",
+      "support volume spike detection",
+      "regional demand anomaly detection",
+      "fleet telemetry anomaly detection"
+    ]
+  }
+}

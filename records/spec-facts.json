@@ -1,0 +1,77 @@
+{
+  "schema": "ticktickclock-spec-facts-v1",
+  "_comment": "Frozen by build-site.mjs on first run. Every value here is re-derived from docs/spec/README.md and records/contracts/ on every subsequent build, and the build refuses on any disagreement. Do not hand-edit: if the specification changes, that is a spec event and the record moves with a human looking at it.",
+  "source": "docs/spec/README.md",
+  "frozen_at": "2026-08-17",
+  "facts": {
+    "spec_lines": 1013,
+    "spec_bytes": 49992,
+    "headings": 37,
+    "sections": 14,
+    "duplicate_section_numbers": [],
+    "boxes_unticked": 47,
+    "boxes_ticked": 0,
+    "feasibility_ids": [
+      "FV-1",
+      "FV-2",
+      "FV-3",
+      "FV-4"
+    ],
+    "acceptance_criteria": 13,
+    "roadmap_phases": [
+      "Pre-Phase",
+      "Phase 0",
+      "Phase 1",
+      "Phase 2",
+      "Phase 3",
+      "Phase 4",
+      "Phase 5"
+    ],
+    "adrs": [
+      "ADR-0001",
+      "ADR-0002",
+      "ADR-0003",
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "mcp_tools": [
+      "anomaly_detect",
+      "anomaly_subscribe",
+      "forecast_explain",
+      "forecast_predict",
+      "pattern_detect",
+      "pattern_summarize",
+      "temporal_enrich",
+      "temporal_learn"
+    ],
+    "performance_targets": 9,
+    "rfc_keywords": 0,
+    "feasibility_claimed_word": "three",
+    "contract_operations": 10,
+    "contract_files": 3,
+    "pulse_loop_id": "ticktickclock.temporal_intelligence",
+    "pulse_phases": [
+      {
+        "id": "retrieve_window",
+        "kind": "retrieve"
+      },
+      {
+        "id": "route_inference",
+        "kind": "route"
+      },
+      {
+        "id": "act_publish",
+        "kind": "act"
+      },
+      {
+        "id": "learn_outcome",
+        "kind": "learn"
+      },
+      {
+        "id": "consolidate_epoch",
+        "kind": "consolidate"
+      }
+    ],
+    "implementation_lines": 0
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://protocol.ampersandboxdesign.com/schema/v0.1.0/capability-contract.schema.json",
+  "capability": "&time.forecast",
+  "provider": "ticktickclock",
+  "version": "0.1.0",
+  "description": "Temporal forecasting contract for predicting near-term demand, load, and trend-driven state changes.",
+  "operations": {
+    "predict": {
+      "in": "time_series",
+      "out": "forecast_set",
+      "description": "Generate a forecast over a requested horizon from historical or streaming temporal data.",
+      "deterministic": false,
+      "side_effects": false
+    },
+    "explain": {
+      "in": "forecast_set",
+      "out": "forecast_explanation",
+      "description": "Return an explanation of forecast drivers, confidence, and major contributing signals.",
+      "deterministic": false,
+      "side_effects": false
+    },
+    "enrich": {
+      "in": "context",
+      "out": "enriched_context",
+      "description": "Attach forecast-derived temporal context to an existing decision or planning payload.",
+      "deterministic": false,
+      "side_effects": false
+    },
+    "learn": {
+      "in": "observation",
+      "out": "ack",
+      "description": "Incorporate realized outcomes for later calibration or model improvement.",
+      "deterministic": false,
+      "side_effects": true
+    }
+  },
+  "accepts_from": [
+    "&memory.*",
+    "&space.*",
+    "raw_data",
+    "time_series",
+    "context",
+    "observation"
+  ],
+  "feeds_into": ["&reason.*", "&space.*", "&memory.*", "output"],
+  "a2a_skills": [
+    "temporal-forecasting",
+    "demand-prediction",
+    "trend-explanation"
+  ],
+  "metadata": {
+    "primitive": "time",
+    "subtype": "forecast",
+    "recommended_horizons": ["1h", "24h", "7d"],
+    "example_use_cases": [
+      "demand spike prediction",
+      "capacity planning",
+      "incident volume forecasting",
+      "regional load forecasting"
+    ]
+  }
+}
